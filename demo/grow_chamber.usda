@@ -1,0 +1,16 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Xform "World" {
+    def Xform "GrowChamber" {}
+    def Xform "Fixture" {
+        custom string opengrow:description = "MVP three-channel horticultural fixture"
+    }
+    def Xform "Canopy" {
+        custom string opengrow:resultAsset = "../build/results/result.json"
+    }
+}
