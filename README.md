@@ -55,8 +55,10 @@ the solver into its Python environment.
 After generating `build/optimization/ppfd_heatmap.usda` on the GPU VM, run
 `tools/kit_capture_heatmap.py` through the OpenGrowTwin Kit launcher using
 `--exec`. It opens the result layer, validates the PPFD and display-color
-primvars, creates an off-screen 1280 × 720 viewport, frames the mesh, waits for
-60 RTX frames, and writes `build/captures/ppfd_heatmap_rtx.png`.
+primvars, creates a top-down camera and a 1280 × 720 USD render product, then
+uses Kit's capture extension to write an RTX image under `build/captures/`.
+This path does not create a GLFW viewport window and is suitable for a VM with
+no X display.
 
 ## Scientific scope
 
