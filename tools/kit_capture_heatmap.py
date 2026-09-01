@@ -8,6 +8,7 @@ omni.graph.examples.cpp.
 from __future__ import annotations
 
 import asyncio
+import glob
 import os
 import traceback
 
@@ -128,7 +129,10 @@ async def capture() -> None:
         options.camera = CAMERA_PATH
         options.output_folder = OUTPUT_DIR
         options.file_name = OUTPUT_STEM
-        options.file_type = ".png"
+        # NVIDIA's render-product capture path writes EXR. PNG is supported by
+        # viewport capture, but can finish with an empty output list when used
+        # with a headless RenderProduct in Kit 110.
+        options.file_type = ".exr"
         options.render_preset = CaptureRenderPreset.PATH_TRACE
         options.render_product = RENDER_PRODUCT_PATH
         capture_instance.options = options
@@ -137,10 +141,16 @@ async def capture() -> None:
 
         while not capture_instance.done:
             await app.next_update_async()
+        # Kit 110 may mark capture done one or two updates before publishing
+        # its output manifest and completing the asynchronous file write.
+        for _ in range(30):
+            await app.next_update_async()
         outputs = capture_instance.get_outputs()
         print(f"[OpenGrowTwin] Capture outputs: {outputs}", flush=True)
+        candidates = list(outputs)
+        candidates.extend(glob.glob(os.path.join(OUTPUT_DIR, f"{OUTPUT_STEM}*.exr")))
         existing = [
-            path for path in outputs
+            path for path in dict.fromkeys(candidates)
             if isinstance(path, str) and os.path.isfile(path) and os.path.getsize(path) > 0
         ]
         if not existing:
