@@ -3,8 +3,12 @@
   "photoperiod_h": 14,
   "grid": {"width_m": 1.0, "depth_m": 0.6, "nx": 21, "ny": 13, "z_m": 0.0},
   "channels": [
-    {"id": "blue", "wavelength_nm": 450, "emitters": [{"position_m": [-0.2, 0.0, 0.6], "radiant_power_w": 18.0, "beam_exponent": 1.0}]},
-    {"id": "red", "wavelength_nm": 660, "emitters": [{"position_m": [0.2, 0.0, 0.6], "radiant_power_w": 18.0, "beam_exponent": 1.0}]},
-    {"id": "far_red", "wavelength_nm": 730, "emitters": [{"position_m": [0.0, 0.0, 0.6], "radiant_power_w": 3.0, "beam_exponent": 1.0}]}
-  ]
+    {"id": "blue", "wavelength_nm": 450, "radiant_power_bounds_w": {"min": 0, "max": 100}, "emitters": [{"position_m": [-0.2, 0.0, 0.6], "radiant_power_w": 18.0, "beam_exponent": 1.0}]},
+    {"id": "red", "wavelength_nm": 660, "radiant_power_bounds_w": {"min": 0, "max": 100}, "emitters": [{"position_m": [0.2, 0.0, 0.6], "radiant_power_w": 18.0, "beam_exponent": 1.0}]},
+    {"id": "far_red", "wavelength_nm": 730, "radiant_power_bounds_w": {"min": 0, "max": 20}, "emitters": [{"position_m": [0.0, 0.0, 0.6], "radiant_power_w": 3.0, "beam_exponent": 1.0}]}
+  ],
+  "optimization": {
+    "candidate_heights_m": [0.4, 0.5, 0.6, 0.7, 0.8],
+    "radiant_power_weight": 0.35
+  }
 }

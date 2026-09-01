@@ -20,9 +20,22 @@ pytest
 opengrow simulate demo/design.json \
   --target data/targets/phalaenopsis_reference.yaml \
   --out build/results
+
+opengrow optimize demo/design.json \
+  --target data/targets/phalaenopsis_reference.yaml \
+  --out build/optimization
 ```
 
 The command writes `ppfd.npy`, `band_ppfd.npy`, `spectral_irradiance.npy`, `metrics.json`, and `result.json`.
+
+The optimizer caches per-channel photon basis maps at candidate fixture heights,
+uses their exact linear superposition to select bounded radiant powers, and
+writes a reproducible baseline/optimized comparison. It optimizes the lighting
+installation to reproduce a reference environment—not plant growth.
+
+The height objective balances target error, PPFD coefficient of variation, and
+a documented radiant-power penalty. Electrical consumption is not claimed
+until LED wall-plug efficiencies are added from traceable manufacturer data.
 
 ## Scientific scope
 

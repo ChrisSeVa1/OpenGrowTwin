@@ -9,6 +9,7 @@ import yaml
 
 from .physics.direct_solver import simulate_design
 from .physics.metrics import summarize
+from .optimize.optimizer import optimize_design
 
 
 def simulate(design_path: Path, target_path: Path | None, out_dir: Path) -> dict:
@@ -35,6 +36,40 @@ def simulate(design_path: Path, target_path: Path | None, out_dir: Path) -> dict
     return contract
 
 
+def optimize(design_path: Path, target_path: Path, out_dir: Path) -> dict:
+    design = json.loads(design_path.read_text(encoding="utf-8"))
+    target = yaml.safe_load(target_path.read_text(encoding="utf-8"))
+    baseline_result = simulate_design(design)
+    baseline_metrics = summarize(
+        baseline_result["ppfd"], baseline_result["far_red"], target["target"]["photoperiod_h"]
+    )
+    optimized = optimize_design(design, target)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    np.save(out_dir / "ppfd_optimized.npy", optimized["fields"]["ppfd"])
+    np.save(out_dir / "band_ppfd_optimized.npy", optimized["fields"]["band_ppfd"])
+    (out_dir / "optimized_design.json").write_text(
+        json.dumps(optimized["design"], indent=2) + "\n", encoding="utf-8"
+    )
+    comparison = {
+        "schema_version": "0.1.0",
+        "reference_treatment": target["id"],
+        "claim": "installation optimization to reproduce a published photon environment",
+        "baseline": baseline_metrics,
+        "optimized": optimized["metrics"],
+        "selected_height_m": optimized["height_m"],
+        "channel_ids": optimized["channel_ids"],
+        "channel_radiant_power_w": optimized["channel_radiant_power_w"].tolist(),
+        "candidate_summary": optimized["candidate_summary"],
+        "assets": {
+            "optimized_design": "optimized_design.json",
+            "ppfd": "ppfd_optimized.npy",
+            "band_ppfd": "band_ppfd_optimized.npy",
+        },
+    }
+    (out_dir / "comparison.json").write_text(json.dumps(comparison, indent=2) + "\n", encoding="utf-8")
+    return comparison
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(prog="opengrow")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -42,8 +77,20 @@ def main(argv=None) -> int:
     command.add_argument("design", type=Path)
     command.add_argument("--target", type=Path)
     command.add_argument("--out", type=Path, required=True)
+    optimize_command = subparsers.add_parser("optimize", help="optimize channel powers and fixture height")
+    optimize_command.add_argument("design", type=Path)
+    optimize_command.add_argument("--target", type=Path, required=True)
+    optimize_command.add_argument("--out", type=Path, required=True)
     args = parser.parse_args(argv)
     if args.command == "simulate":
         contract = simulate(args.design, args.target, args.out)
         print(json.dumps(contract["metrics"], indent=2))
+    elif args.command == "optimize":
+        comparison = optimize(args.design, args.target, args.out)
+        print(json.dumps({
+            "selected_height_m": comparison["selected_height_m"],
+            "channel_radiant_power_w": comparison["channel_radiant_power_w"],
+            "baseline": comparison["baseline"],
+            "optimized": comparison["optimized"],
+        }, indent=2))
     return 0
