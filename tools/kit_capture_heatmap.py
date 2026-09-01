@@ -18,7 +18,7 @@ from omni.kit.capture.viewport import (
     CaptureOptions,
     CaptureRenderPreset,
 )
-from pxr import Gf, UsdGeom, UsdLux, UsdRender
+from pxr import Gf, Sdf, UsdGeom, UsdLux, UsdRender
 
 
 PROJECT_ROOT = os.environ.get(
@@ -33,6 +33,7 @@ CAMERA_PATH = "/OpenGrowTwinResults/CaptureCamera"
 LIGHT_PATH = "/OpenGrowTwinResults/CaptureDomeLight"
 RENDER_PRODUCT_PATH = "/Render/OpenGrowTwinProduct"
 RENDER_SETTINGS_PATH = "/Render/OpenGrowTwinSettings"
+RENDER_VAR_PATH = "/Render/Vars/LdrColor"
 
 
 async def capture() -> None:
@@ -87,8 +88,37 @@ async def capture() -> None:
         product = UsdRender.Product.Define(stage, RENDER_PRODUCT_PATH)
         product.CreateCameraRel().SetTargets([camera.GetPath()])
         product.CreateResolutionAttr(Gf.Vec2i(1280, 720))
+        product.CreateProductTypeAttr("raster")
+        product.CreateProductNameAttr(OUTPUT_STEM)
+
+        # Hydra needs an ordered render variable; a Product prim containing
+        # only a camera and resolution is valid USD but is not renderable.
+        color_var = UsdRender.Var.Define(stage, RENDER_VAR_PATH)
+        color_var.CreateDataTypeAttr("color3f")
+        color_var.CreateSourceTypeAttr("raw")
+        color_var.CreateSourceNameAttr("LdrColor")
+        product.CreateOrderedVarsRel().SetTargets([color_var.GetPath()])
+
         settings = UsdRender.Settings.Define(stage, RENDER_SETTINGS_PATH)
         settings.CreateProductsRel().SetTargets([product.GetPath()])
+        stage.SetMetadata("renderSettingsPrimPath", Sdf.Path(RENDER_SETTINGS_PATH))
+
+        if not product.GetPrim().IsValid():
+            raise RuntimeError("Render product was not authored on the active stage")
+        print(
+            f"[OpenGrowTwin] Render product authored: {RENDER_PRODUCT_PATH}; "
+            f"camera={CAMERA_PATH}, vars=1, resolution=1280x720",
+            flush=True,
+        )
+
+        # The stage can become available before the RTX Hydra delegate has
+        # registered newly authored RenderProducts. Yield both frames and
+        # wall-clock time so capture does not race the renderer's `RTX ready`.
+        for _ in range(120):
+            await app.next_update_async()
+        await asyncio.sleep(3.0)
+        for _ in range(30):
+            await app.next_update_async()
 
         print("[OpenGrowTwin] Starting headless RTX render product", flush=True)
         capture_instance = CaptureExtension.get_instance()
