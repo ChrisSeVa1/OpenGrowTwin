@@ -1,11 +1,47 @@
 {
-  "schema_version": "0.1.0",
+  "schema_version": "0.2.0",
+  "description": "Interleaved 4 x 4 PAR fixture with four supplemental far-red emitters",
   "photoperiod_h": 14,
-  "grid": {"width_m": 1.0, "depth_m": 0.6, "nx": 21, "ny": 13, "z_m": 0.0},
+  "grid": {"width_m": 1.0, "depth_m": 0.6, "nx": 41, "ny": 25, "z_m": 0.0},
   "channels": [
-    {"id": "blue", "wavelength_nm": 450, "radiant_power_bounds_w": {"min": 0, "max": 100}, "emitters": [{"position_m": [-0.2, 0.0, 0.6], "radiant_power_w": 18.0, "beam_exponent": 1.0}]},
-    {"id": "red", "wavelength_nm": 660, "radiant_power_bounds_w": {"min": 0, "max": 100}, "emitters": [{"position_m": [0.2, 0.0, 0.6], "radiant_power_w": 18.0, "beam_exponent": 1.0}]},
-    {"id": "far_red", "wavelength_nm": 730, "radiant_power_bounds_w": {"min": 0, "max": 20}, "emitters": [{"position_m": [0.0, 0.0, 0.6], "radiant_power_w": 3.0, "beam_exponent": 1.0}]}
+    {
+      "id": "blue", "wavelength_nm": 450,
+      "radiant_power_bounds_w": {"min": 0, "max": 100},
+      "emitters": [
+        {"position_m": [-0.36, -0.18, 0.6], "radiant_power_w": 2.25, "beam_exponent": 1.0},
+        {"position_m": [ 0.12, -0.18, 0.6], "radiant_power_w": 2.25, "beam_exponent": 1.0},
+        {"position_m": [-0.12, -0.06, 0.6], "radiant_power_w": 2.25, "beam_exponent": 1.0},
+        {"position_m": [ 0.36, -0.06, 0.6], "radiant_power_w": 2.25, "beam_exponent": 1.0},
+        {"position_m": [-0.36,  0.06, 0.6], "radiant_power_w": 2.25, "beam_exponent": 1.0},
+        {"position_m": [ 0.12,  0.06, 0.6], "radiant_power_w": 2.25, "beam_exponent": 1.0},
+        {"position_m": [-0.12,  0.18, 0.6], "radiant_power_w": 2.25, "beam_exponent": 1.0},
+        {"position_m": [ 0.36,  0.18, 0.6], "radiant_power_w": 2.25, "beam_exponent": 1.0}
+      ]
+    },
+    {
+      "id": "red", "wavelength_nm": 660,
+      "radiant_power_bounds_w": {"min": 0, "max": 100},
+      "emitters": [
+        {"position_m": [-0.12, -0.18, 0.6], "radiant_power_w": 2.25, "beam_exponent": 1.0},
+        {"position_m": [ 0.36, -0.18, 0.6], "radiant_power_w": 2.25, "beam_exponent": 1.0},
+        {"position_m": [-0.36, -0.06, 0.6], "radiant_power_w": 2.25, "beam_exponent": 1.0},
+        {"position_m": [ 0.12, -0.06, 0.6], "radiant_power_w": 2.25, "beam_exponent": 1.0},
+        {"position_m": [-0.12,  0.06, 0.6], "radiant_power_w": 2.25, "beam_exponent": 1.0},
+        {"position_m": [ 0.36,  0.06, 0.6], "radiant_power_w": 2.25, "beam_exponent": 1.0},
+        {"position_m": [-0.36,  0.18, 0.6], "radiant_power_w": 2.25, "beam_exponent": 1.0},
+        {"position_m": [ 0.12,  0.18, 0.6], "radiant_power_w": 2.25, "beam_exponent": 1.0}
+      ]
+    },
+    {
+      "id": "far_red", "wavelength_nm": 730,
+      "radiant_power_bounds_w": {"min": 0, "max": 20},
+      "emitters": [
+        {"position_m": [-0.24, -0.12, 0.6], "radiant_power_w": 0.75, "beam_exponent": 1.0},
+        {"position_m": [ 0.24, -0.12, 0.6], "radiant_power_w": 0.75, "beam_exponent": 1.0},
+        {"position_m": [-0.24,  0.12, 0.6], "radiant_power_w": 0.75, "beam_exponent": 1.0},
+        {"position_m": [ 0.24,  0.12, 0.6], "radiant_power_w": 0.75, "beam_exponent": 1.0}
+      ]
+    }
   ],
   "optimization": {
     "candidate_heights_m": [0.4, 0.5, 0.6, 0.7, 0.8],

@@ -10,6 +10,7 @@ import yaml
 from .physics.direct_solver import simulate_design
 from .physics.metrics import summarize
 from .optimize.optimizer import optimize_design
+from .visualization.heatmap import render_comparison
 
 
 def simulate(design_path: Path, target_path: Path | None, out_dir: Path) -> dict:
@@ -47,6 +48,9 @@ def optimize(design_path: Path, target_path: Path, out_dir: Path) -> dict:
     out_dir.mkdir(parents=True, exist_ok=True)
     np.save(out_dir / "ppfd_optimized.npy", optimized["fields"]["ppfd"])
     np.save(out_dir / "band_ppfd_optimized.npy", optimized["fields"]["band_ppfd"])
+    heatmap_assets = render_comparison(
+        baseline_result["ppfd"], optimized["fields"]["ppfd"], design["grid"], out_dir
+    )
     (out_dir / "optimized_design.json").write_text(
         json.dumps(optimized["design"], indent=2) + "\n", encoding="utf-8"
     )
@@ -64,6 +68,7 @@ def optimize(design_path: Path, target_path: Path, out_dir: Path) -> dict:
             "optimized_design": "optimized_design.json",
             "ppfd": "ppfd_optimized.npy",
             "band_ppfd": "band_ppfd_optimized.npy",
+            **heatmap_assets,
         },
     }
     (out_dir / "comparison.json").write_text(json.dumps(comparison, indent=2) + "\n", encoding="utf-8")

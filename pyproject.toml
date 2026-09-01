@@ -9,7 +9,7 @@ description = "Auditable spectral photon solver for an OpenUSD horticultural dig
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "Apache-2.0"}
-dependencies = ["numpy>=1.26", "PyYAML>=6.0"]
+dependencies = ["numpy>=1.26", "PyYAML>=6.0", "matplotlib>=3.8"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]

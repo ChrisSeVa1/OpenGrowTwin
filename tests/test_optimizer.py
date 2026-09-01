@@ -19,6 +19,18 @@ def test_optimizer_reaches_reference_mean_and_fraction():
     assert result["metrics"]["cv_ppfd"] < 0.25
 
 
+def test_optimizer_does_not_regress_baseline_uniformity():
+    from opengrow.physics.direct_solver import simulate_design
+    from opengrow.physics.metrics import summarize
+    root = Path(__file__).parents[1]
+    design = json.loads((root / "demo/design.json").read_text())
+    target = yaml.safe_load((root / "data/targets/phalaenopsis_reference.yaml").read_text())
+    baseline = simulate_design(design)
+    baseline_metrics = summarize(baseline["ppfd"], baseline["far_red"], target["target"]["photoperiod_h"])
+    result = optimize_design(design, target)
+    assert result["metrics"]["cv_ppfd"] <= baseline_metrics["cv_ppfd"] + 1e-4
+
+
 def test_optimizer_does_not_mutate_input():
     root = Path(__file__).parents[1]
     design = json.loads((root / "demo/design.json").read_text())

@@ -7,6 +7,7 @@ from copy import deepcopy
 import numpy as np
 
 from opengrow.physics.basis import channel_basis, design_at_height, reconstruct
+from opengrow.physics.direct_solver import simulate_design
 from opengrow.physics.metrics import summarize
 
 
@@ -52,6 +53,10 @@ def optimize_design(design: dict, target: dict, candidate_heights_m=None) -> dic
             "candidate_heights_m", [0.4, 0.5, 0.6, 0.7, 0.8]
         )
     photoperiod = float(target["target"]["photoperiod_h"])
+    baseline_fields = simulate_design(design)
+    baseline_cv = summarize(
+        baseline_fields["ppfd"], baseline_fields["far_red"], photoperiod
+    )["cv_ppfd"]
     power_weight = float(design.get("optimization", {}).get("radiant_power_weight", 0.35))
     par_power_capacity = sum(
         _channel_bounds(channel)[1]
@@ -94,7 +99,11 @@ def optimize_design(design: dict, target: dict, candidate_heights_m=None) -> dic
             "fields": fields,
             "design": candidate_design,
         })
-    best = min(candidates, key=lambda item: item["score"])
+    non_regressing = [
+        item for item in candidates
+        if item["metrics"]["cv_ppfd"] <= baseline_cv + 1e-4
+    ]
+    best = min(non_regressing or candidates, key=lambda item: item["score"])
     optimized = deepcopy(best["design"])
     for channel, power in zip(optimized["channels"], best["powers_w"], strict=True):
         _set_channel_total_power(channel, float(power))

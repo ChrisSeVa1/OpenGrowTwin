@@ -36,6 +36,13 @@ installation to reproduce a reference environment—not plant growth.
 The height objective balances target error, PPFD coefficient of variation, and
 a documented radiant-power penalty. Electrical consumption is not claimed
 until LED wall-plug efficiencies are added from traceable manufacturer data.
+Candidate selection rejects avoidable regressions in baseline PPFD uniformity.
+
+The demo fixture uses sixteen interleaved PAR emitters (eight blue and eight
+red) plus four supplemental far-red emitters over a 41 × 25 sensor grid.
+Optimization also writes baseline and optimized PNG heatmaps with one shared
+absolute color scale, plus CSV grids for inspection and later OpenUSD import.
+The PNG colors are explanatory only; NumPy/CSV values remain authoritative.
 
 ## Scientific scope
 
