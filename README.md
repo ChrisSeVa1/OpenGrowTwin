@@ -50,6 +50,14 @@ with exact PPFD values in `primvars:opengrow:ppfd`, display colors in
 summary metrics. Kit can sublayer or reference this result without importing
 the solver into its Python environment.
 
+## Headless Kit/RTX capture
+
+After generating `build/optimization/ppfd_heatmap.usda` on the GPU VM, run
+`tools/kit_capture_heatmap.py` through the OpenGrowTwin Kit launcher using
+`--exec`. It opens the result layer, validates the PPFD and display-color
+primvars, creates an off-screen 1280 × 720 viewport, frames the mesh, waits for
+60 RTX frames, and writes `build/captures/ppfd_heatmap_rtx.png`.
+
 ## Scientific scope
 
 The current solver models direct light from point emitters with cosine beam falloff and inverse-square attenuation. Reflections, canopy interception, thermal effects, plant growth, and spectral rendering validation are outside the MVP. Far-red (730 nm) is reported separately and is not included in 400–700 nm PPFD.
