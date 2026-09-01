@@ -18,7 +18,7 @@ from omni.kit.capture.viewport import (
     CaptureOptions,
     CaptureRenderPreset,
 )
-from pxr import Gf, Sdf, UsdGeom, UsdLux, UsdRender
+from pxr import Gf, UsdGeom, UsdLux, UsdRender
 
 
 PROJECT_ROOT = os.environ.get(
@@ -101,7 +101,9 @@ async def capture() -> None:
 
         settings = UsdRender.Settings.Define(stage, RENDER_SETTINGS_PATH)
         settings.CreateProductsRel().SetTargets([product.GetPath()])
-        stage.SetMetadata("renderSettingsPrimPath", Sdf.Path(RENDER_SETTINGS_PATH))
+        # Kit 110's registered stage metadata expects a string here rather
+        # than the Sdf.Path used by some OpenUSD API examples.
+        stage.SetMetadata("renderSettingsPrimPath", RENDER_SETTINGS_PATH)
 
         if not product.GetPrim().IsValid():
             raise RuntimeError("Render product was not authored on the active stage")
