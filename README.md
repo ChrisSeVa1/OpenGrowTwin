@@ -75,6 +75,11 @@ The bundled Phalaenopsis target reproduces a published reference treatment of ap
 - `exts/opengrow.twin/` — Omniverse Kit integration boundary
 - `docs/` — architecture and GCP/Kit reproducibility notes
 
+Detailed engineering records:
+
+- [`docs/gcp-setup.md`](docs/gcp-setup.md) — Day 1 GCP/L4 and Kit infrastructure gate
+- [`docs/day-2-science-openusd-rtx.md`](docs/day-2-science-openusd-rtx.md) — tested solver, optimization, OpenUSD, and headless RTX reproduction guide
+
 ## License
 
 OpenGrowTwin code is licensed under Apache-2.0. NVIDIA software, manufacturer data, research literature, and other dependencies retain their respective terms; see `THIRD_PARTY_NOTICES.md`.
