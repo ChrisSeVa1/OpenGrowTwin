@@ -44,6 +44,12 @@ Optimization also writes baseline and optimized PNG heatmaps with one shared
 absolute color scale, plus CSV grids for inspection and later OpenUSD import.
 The PNG colors are explanatory only; NumPy/CSV values remain authoritative.
 
+The same command writes `ppfd_heatmap.usda`: a self-contained OpenUSD mesh
+with exact PPFD values in `primvars:opengrow:ppfd`, display colors in
+`primvars:displayColor`, quad topology, grid dimensions, and namespaced
+summary metrics. Kit can sublayer or reference this result without importing
+the solver into its Python environment.
+
 ## Scientific scope
 
 The current solver models direct light from point emitters with cosine beam falloff and inverse-square attenuation. Reflections, canopy interception, thermal effects, plant growth, and spectral rendering validation are outside the MVP. Far-red (730 nm) is reported separately and is not included in 400–700 nm PPFD.

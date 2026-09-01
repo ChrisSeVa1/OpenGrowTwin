@@ -19,6 +19,8 @@ def test_optimize_writes_visual_assets(tmp_path):
     root = Path(__file__).parents[1]
     result = optimize(root / "demo/design.json", root / "data/targets/phalaenopsis_reference.yaml", tmp_path)
     for name in ("ppfd_baseline.png", "ppfd_optimized.png", "ppfd_comparison.png",
-                 "ppfd_baseline.csv", "ppfd_optimized.csv"):
+                 "ppfd_baseline.csv", "ppfd_optimized.csv", "ppfd_heatmap.usda"):
         assert (tmp_path / name).stat().st_size > 0
     assert result["assets"]["comparison_heatmap"] == "ppfd_comparison.png"
+    assert result["openusd"]["vertex_count"] == 41 * 25
+    assert result["openusd"]["face_count"] == 40 * 24

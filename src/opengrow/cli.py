@@ -11,6 +11,7 @@ from .physics.direct_solver import simulate_design
 from .physics.metrics import summarize
 from .optimize.optimizer import optimize_design
 from .visualization.heatmap import render_comparison
+from .usd.heatmap import write_heatmap_usda
 
 
 def simulate(design_path: Path, target_path: Path | None, out_dir: Path) -> dict:
@@ -51,6 +52,10 @@ def optimize(design_path: Path, target_path: Path, out_dir: Path) -> dict:
     heatmap_assets = render_comparison(
         baseline_result["ppfd"], optimized["fields"]["ppfd"], design["grid"], out_dir
     )
+    usd_asset = write_heatmap_usda(
+        optimized["fields"]["ppfd"], design["grid"], optimized["metrics"],
+        out_dir / "ppfd_heatmap.usda",
+    )
     (out_dir / "optimized_design.json").write_text(
         json.dumps(optimized["design"], indent=2) + "\n", encoding="utf-8"
     )
@@ -69,7 +74,9 @@ def optimize(design_path: Path, target_path: Path, out_dir: Path) -> dict:
             "ppfd": "ppfd_optimized.npy",
             "band_ppfd": "band_ppfd_optimized.npy",
             **heatmap_assets,
+            "openusd_heatmap": usd_asset["path"],
         },
+        "openusd": usd_asset,
     }
     (out_dir / "comparison.json").write_text(json.dumps(comparison, indent=2) + "\n", encoding="utf-8")
     return comparison
