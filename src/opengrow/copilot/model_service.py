@@ -25,6 +25,12 @@ SYSTEM_PROMPT = (
     "exactly one relevant tool and never invent measurements, citations, paths, "
     "identifiers, or confirmation tokens."
 )
+GROUNDED_SYSTEM_PROMPT = (
+    "You are the OpenGrowTwin scene assistant. Answer the user's question "
+    "concisely using only the supplied authoritative tool result. Do not request "
+    "another tool, add generic ranges, invent measurements or citations, or "
+    "broaden a reference treatment into a biological optimum."
+)
 
 
 class ModelServiceError(RuntimeError):
@@ -38,6 +44,16 @@ class ModelToolCall:
     call_id: str
     name: str
     arguments: dict[str, Any]
+    latency_s: float
+    usage: dict[str, Any]
+    timings: dict[str, Any]
+
+
+@dataclass(frozen=True)
+class GroundedModelAnswer:
+    """Final model text generated from an executed tool result."""
+
+    content: str
     latency_s: float
     usage: dict[str, Any]
     timings: dict[str, Any]
@@ -179,6 +195,74 @@ class ModelServiceClient:
             call_id=call_id,
             name=name,
             arguments=validated,
+            latency_s=latency_s,
+            usage=response.get("usage") if isinstance(response.get("usage"), dict) else {},
+            timings=response.get("timings") if isinstance(response.get("timings"), dict) else {},
+        )
+
+    def request_grounded_answer(
+        self,
+        prompt: str,
+        call: ModelToolCall,
+        tool_output: Any,
+        *,
+        system_prompt: str = GROUNDED_SYSTEM_PROMPT,
+        max_tokens: int = 768,
+    ) -> GroundedModelAnswer:
+        """Return final prose grounded in one validated tool result.
+
+        Tools are omitted from this second request, preventing an unbounded
+        agent loop. OGT-204 deliberately permits one tool execution per turn.
+        """
+        try:
+            tool_content = json.dumps(tool_output, allow_nan=False, sort_keys=True)
+        except (TypeError, ValueError) as exc:
+            raise ModelServiceError("tool output must be finite JSON-compatible data") from exc
+        started = time.monotonic()
+        response = self._post({
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt},
+                {
+                    "role": "assistant",
+                    "content": "",
+                    "tool_calls": [{
+                        "id": call.call_id,
+                        "type": "function",
+                        "function": {
+                            "name": call.name,
+                            "arguments": json.dumps(call.arguments, sort_keys=True),
+                        },
+                    }],
+                },
+                {
+                    "role": "tool",
+                    "tool_call_id": call.call_id,
+                    "name": call.name,
+                    "content": tool_content,
+                },
+            ],
+            "temperature": 0,
+            "max_tokens": max_tokens,
+        })
+        latency_s = time.monotonic() - started
+        choices = response.get("choices")
+        if not isinstance(choices, list) or len(choices) != 1:
+            raise ModelServiceError("grounded response must contain exactly one choice")
+        choice = choices[0]
+        if choice.get("finish_reason") != "stop":
+            raise ModelServiceError(
+                f"grounded response did not finish cleanly: {choice.get('finish_reason')!r}"
+            )
+        message = choice.get("message")
+        if not isinstance(message, dict) or message.get("tool_calls"):
+            raise ModelServiceError("grounded response must contain final text only")
+        content = message.get("content")
+        if not isinstance(content, str) or not content.strip():
+            raise ModelServiceError("grounded response is empty")
+        return GroundedModelAnswer(
+            content=content.strip(),
             latency_s=latency_s,
             usage=response.get("usage") if isinstance(response.get("usage"), dict) else {},
             timings=response.get("timings") if isinstance(response.get("timings"), dict) else {},

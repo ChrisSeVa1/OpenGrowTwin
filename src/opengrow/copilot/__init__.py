@@ -7,6 +7,14 @@ from .contracts import (
     validate_tool_call,
 )
 from .evidence import ApprovedEvidenceStore, EvidenceError
+from .execution import ToolExecutionError, ToolExecutionResult, ToolExecutor
+from .loop import ToolLoopResult, ValidatedToolLoop
+from .model_service import (
+    GroundedModelAnswer,
+    ModelServiceClient,
+    ModelServiceError,
+    ModelToolCall,
+)
 
 __all__ = [
     "ConfirmationStore",
@@ -15,4 +23,13 @@ __all__ = [
     "validate_tool_call",
     "ApprovedEvidenceStore",
     "EvidenceError",
+    "ToolExecutionError",
+    "ToolExecutionResult",
+    "ToolExecutor",
+    "ToolLoopResult",
+    "ValidatedToolLoop",
+    "GroundedModelAnswer",
+    "ModelServiceClient",
+    "ModelServiceError",
+    "ModelToolCall",
 ]
