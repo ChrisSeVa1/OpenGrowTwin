@@ -25,6 +25,12 @@ SYSTEM_PROMPT = (
     "exactly one relevant tool and never invent measurements, citations, paths, "
     "identifiers, or confirmation tokens."
 )
+GROUNDED_SYSTEM_PROMPT = (
+    "You are the OpenGrowTwin scene assistant. Answer the user's question "
+    "concisely using only the supplied authoritative tool result. Do not request "
+    "another tool, add generic ranges, invent measurements or citations, or "
+    "broaden a reference treatment into a biological optimum."
+)
 
 
 class ModelServiceError(RuntimeError):
@@ -200,8 +206,8 @@ class ModelServiceClient:
         call: ModelToolCall,
         tool_output: Any,
         *,
-        system_prompt: str = SYSTEM_PROMPT,
-        max_tokens: int = 384,
+        system_prompt: str = GROUNDED_SYSTEM_PROMPT,
+        max_tokens: int = 768,
     ) -> GroundedModelAnswer:
         """Return final prose grounded in one validated tool result.
 
@@ -246,7 +252,9 @@ class ModelServiceClient:
             raise ModelServiceError("grounded response must contain exactly one choice")
         choice = choices[0]
         if choice.get("finish_reason") != "stop":
-            raise ModelServiceError("grounded response did not finish cleanly")
+            raise ModelServiceError(
+                f"grounded response did not finish cleanly: {choice.get('finish_reason')!r}"
+            )
         message = choice.get("message")
         if not isinstance(message, dict) or message.get("tool_calls"):
             raise ModelServiceError("grounded response must contain final text only")
