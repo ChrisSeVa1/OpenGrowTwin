@@ -129,13 +129,15 @@ def update_live_results(stage, current: dict, baseline: dict | None = None, disp
     legend_max = float(baseline_values.max())
     if legend_max <= legend_min:
         legend_max = legend_min + 1.0
-    with Sdf.ChangeBlock():
-        results = UsdGeom.Xform.Define(stage, "/World/GrowInstallation/Results").GetPrim()
-        results.CreateAttribute("opengrow:role", Sdf.ValueTypeNames.Token, custom=True).Set("results")
-        results.CreateAttribute("opengrow:activeDisplay", Sdf.ValueTypeNames.Token, custom=True).Set(display_mode)
-        _write_mesh(stage, HEATMAP_PATHS["baseline"], baseline, legend_min, legend_max)
-        _write_mesh(stage, HEATMAP_PATHS["current"], current, legend_min, legend_max)
-        set_display_mode(stage, display_mode)
+    # Do not wrap UsdStage Define calls in Sdf.ChangeBlock. Defining the parent
+    # defers composition, which prevents subsequent child Define calls from
+    # resolving the new parent in USD 25.11 / Kit 110.
+    results = UsdGeom.Xform.Define(stage, "/World/GrowInstallation/Results").GetPrim()
+    results.CreateAttribute("opengrow:role", Sdf.ValueTypeNames.Token, custom=True).Set("results")
+    results.CreateAttribute("opengrow:activeDisplay", Sdf.ValueTypeNames.Token, custom=True).Set(display_mode)
+    _write_mesh(stage, HEATMAP_PATHS["baseline"], baseline, legend_min, legend_max)
+    _write_mesh(stage, HEATMAP_PATHS["current"], current, legend_min, legend_max)
+    set_display_mode(stage, display_mode)
     return {
         "stage": stage,
         "baseline_path": HEATMAP_PATHS["baseline"],
