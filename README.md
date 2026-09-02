@@ -120,6 +120,14 @@ The current solver models direct light from point emitters with cosine beam fall
 
 The bundled Phalaenopsis target reproduces a published reference treatment of approximately 200 µmol/m²/s for 14 hours/day with a 40% blue / 60% red photon fraction. It is not presented as an optimal orchid spectrum.
 
+OGT-202 packages that treatment under
+`data/evidence/phalaenopsis_ouzounis_2015/` with publication metadata, direct
+source-field links, a deterministic DLI derivation, digital-twin mapping
+limitations, and approved/prohibited claim boundaries. `ApprovedEvidenceStore`
+exposes only allowlisted, approved records to the copilot; inconsistent values,
+missing provenance, unknown evidence fields, and universal-optimum claims fail
+validation before model use.
+
 ## Project layout
 
 - `src/opengrow/physics/` — photon conversion, direct solver, and metrics

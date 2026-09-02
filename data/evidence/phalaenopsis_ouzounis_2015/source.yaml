@@ -1,0 +1,50 @@
+schema_version: "1.0"
+source_id: ouzounis_2015_ppl_12300
+approval_status: approved
+source_type: peer_reviewed_journal_article
+
+citation:
+  title: "Spectral effects of LEDs on chlorophyll fluorescence and pigmentation in Phalaenopsis 'Vivien' and 'Purple Star'"
+  authors:
+    - Theoharis Ouzounis
+    - Xavier Frette
+    - Carl-Otto Ottosen
+    - Eva Rosenqvist
+  journal: Physiologia Plantarum
+  year: 2015
+  volume: 154
+  issue: 2
+  pages: "314-327"
+  doi: "10.1111/ppl.12300"
+  pmid: "25302638"
+  url: "https://pubmed.ncbi.nlm.nih.gov/25302638/"
+
+experiment:
+  species: Phalaenopsis
+  cultivars: [Vivien, Purple Star]
+  developmental_context: pre_flowering
+  facility: greenhouse
+  period: "January-April 2013"
+  conditions:
+    day_temperature_c: 24
+    night_temperature_c: 18
+    background_daylight: true
+    shade_screens: true
+  lighting:
+    approximate_mean_ppfd_umol_m2_s: 200
+    measurement_plane: plant_height
+    photoperiod_h: 14
+    treatments:
+      blue40_red60:
+        blue_fraction: 0.40
+        red_fraction: 0.60
+      red100:
+        blue_fraction: 0.00
+        red_fraction: 1.00
+      white_control:
+        blue_fraction_in_white: 0.32
+
+source_limitations:
+  - The treatment included background greenhouse daylight under shade screens.
+  - Biological responses differed by cultivar, response variable, and harvest.
+  - The publication does not establish a universal optimum spectrum.
