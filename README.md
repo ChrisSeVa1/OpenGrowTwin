@@ -133,6 +133,7 @@ Detailed engineering records:
 
 - [`docs/gcp-setup.md`](docs/gcp-setup.md) — Day 1 GCP/L4 and Kit infrastructure gate
 - [`docs/day-2-science-openusd-rtx.md`](docs/day-2-science-openusd-rtx.md) — tested solver, optimization, OpenUSD, and headless RTX reproduction guide
+- [`docs/day-3-live-openusd-interaction.md`](docs/day-3-live-openusd-interaction.md) — reproducible OGT-101–106 live scene, occlusion, Kit UI, heatmap, and RTX synchronization record
 
 ## License
 
