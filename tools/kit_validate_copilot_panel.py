@@ -8,7 +8,10 @@ import sys
 from pathlib import Path
 
 from pxr import Usd
+import omni.kit.pipapi
 
+
+omni.kit.pipapi.install("PyYAML==6.0.2")
 
 repository = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(repository / "src"))
