@@ -83,8 +83,20 @@ OGT-205 will register Kit-owned handlers and expose the loop through the
 Copilot panel. USD reads and writes must remain on Kit's main thread; solver
 work may continue on a background executor.
 
-## Completion gate
+## Validated completion result
 
-OGT-204 is complete when the full unit suite and live grounded acceptance pass.
-The branch must not merge merely because static model tool selection works:
-the executed result must return to the model and constrain its final answer.
+On the recorded L4 VM:
+
+- all 76 repository tests passed in 2.26 seconds;
+- the live loop selected `get_target` with the exact allowlisted identifier;
+- `ApprovedEvidenceStore` returned DOI `10.1111/ppl.12300`;
+- the final answer repeated that DOI and accurately stated that the study did
+  not establish a universal spectral optimum across cultivars;
+- tool planning took 1.52 seconds;
+- grounded synthesis took 4.44 seconds;
+- no arbitrary code or unregistered handler was executed.
+
+The first live attempt exposed a contradictory prompt that still instructed the
+model to select a tool during final synthesis. OGT-204 now uses separate
+planning and grounded-answer prompts, and the regression suite covers this
+two-phase boundary.
