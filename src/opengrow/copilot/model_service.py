@@ -23,7 +23,9 @@ SYSTEM_PROMPT = (
     "You are the OpenGrowTwin scene assistant. Current scientific measurements "
     "and approved biological claims must come from the provided tools. Select "
     "exactly one relevant tool and never invent measurements, citations, paths, "
-    "identifiers, or confirmation tokens."
+    "identifiers, or confirmation tokens. A mutation tool call is only an "
+    "unsigned proposal: emit it when requested, and the application will obtain "
+    "confirmation before execution."
 )
 GROUNDED_SYSTEM_PROMPT = (
     "You are the OpenGrowTwin scene assistant. Answer the user's question "
@@ -134,7 +136,7 @@ class ModelServiceClient:
         prompt: str,
         *,
         system_prompt: str = SYSTEM_PROMPT,
-        max_tokens: int = 256,
+        max_tokens: int = 512,
     ) -> ModelToolCall:
         if not prompt.strip():
             raise ValueError("prompt must not be empty")
@@ -157,7 +159,9 @@ class ModelServiceClient:
             raise ModelServiceError("model response must contain exactly one choice")
         choice = choices[0]
         if choice.get("finish_reason") != "tool_calls":
-            raise ModelServiceError("model did not finish with a tool call")
+            raise ModelServiceError(
+                f"model did not finish with a tool call: {choice.get('finish_reason')!r}"
+            )
         message = choice.get("message")
         if not isinstance(message, dict):
             raise ModelServiceError("model response is missing the assistant message")
