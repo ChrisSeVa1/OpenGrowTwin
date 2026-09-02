@@ -14,7 +14,7 @@ import time
 from typing import Any
 from urllib import error, parse, request
 
-from .contracts import TOOL_SCHEMAS, validate_tool_call
+from .contracts import MODEL_TOOL_SCHEMAS, validate_tool_proposal
 
 
 DEFAULT_ENDPOINT = "http://127.0.0.1:8080"
@@ -145,7 +145,7 @@ class ModelServiceClient:
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt},
             ],
-            "tools": list(TOOL_SCHEMAS),
+            "tools": list(MODEL_TOOL_SCHEMAS),
             "tool_choice": "auto",
             "temperature": 0,
             "max_tokens": max_tokens,
@@ -184,7 +184,7 @@ class ModelServiceClient:
         else:
             arguments = raw_arguments
         try:
-            validated = validate_tool_call(name, arguments)
+            validated = validate_tool_proposal(name, arguments)
         except (KeyError, ValueError) as exc:
             raise ModelServiceError(f"tool call failed OGT-201 validation: {exc}") from exc
 
