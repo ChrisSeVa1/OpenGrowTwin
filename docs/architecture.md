@@ -54,6 +54,15 @@ is removed, so other fixtures and channels continue illuminating the same
 sample. Per-emitter and aggregate blocked-ray counts make the shadow result
 auditable. General triangle-mesh intersection remains outside the MVP path.
 
+## Kit simulation orchestration (OGT-104)
+
+The `opengrow.twin` extension reads USD state on Kit's main thread, then runs
+the prepared NumPy design through a background executor. The panel exposes a
+manual Simulate action and preview/final grid selection. OpenUSD object-change
+notices are debounced before automatic preview simulation, preventing drag
+operations from queuing a run for every intermediate transform. Errors and
+completion metrics are surfaced in the same panel and in the Kit log.
+
 ## Current assumptions
 
 - Direct light only; no reflections or occlusion.

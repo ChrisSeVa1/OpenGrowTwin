@@ -85,6 +85,13 @@ diagnostics. Validate a parked and beam-intersecting occluder in Kit with:
 ./repo.sh --exec tools/kit_validate_occlusion.py
 ```
 
+OGT-104 packages interactive orchestration as the `opengrow.twin` Kit
+extension. It provides a Simulate action, preview/final grids, debounced
+automatic previews after live USD changes, background solver execution, and
+visible status/error reporting. Add `exts/` as an extension folder and enable
+`opengrow.twin`; use `tools/kit_validate_orchestration.py` for the headless
+acceptance test.
+
 ## Headless Kit/RTX capture
 
 After generating `build/optimization/ppfd_heatmap.usda` on the GPU VM, run

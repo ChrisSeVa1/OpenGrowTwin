@@ -1,0 +1,19 @@
+[package]
+title = "OpenGrowTwin Live Simulation"
+version = "0.1.0"
+description = "Interactive orchestration for the OpenGrowTwin photon solver"
+category = "Simulation"
+keywords = ["horticulture", "lighting", "OpenUSD", "digital twin"]
+readme = "README.md"
+repository = "https://github.com/ChrisSeVa1/OpenGrowTwin"
+
+[dependencies]
+"omni.kit.uiapp" = {}
+"omni.usd" = {}
+
+[[python.module]]
+name = "opengrow_twin"
+
+[settings]
+exts."opengrow.twin".auto_simulate = true
+exts."opengrow.twin".debounce_seconds = 0.25
