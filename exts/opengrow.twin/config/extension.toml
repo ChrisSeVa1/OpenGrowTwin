@@ -9,7 +9,12 @@ repository = "https://github.com/ChrisSeVa1/OpenGrowTwin"
 
 [dependencies]
 "omni.kit.uiapp" = {}
+"omni.kit.pipapi" = {}
 "omni.usd" = {}
+
+[python.pipapi]
+requirements = ["PyYAML==6.0.2"]
+use_online_index = true
 
 [[python.module]]
 name = "opengrow_twin"
