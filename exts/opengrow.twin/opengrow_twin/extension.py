@@ -18,6 +18,9 @@ REPOSITORY = Path(__file__).resolve().parents[3]
 SOURCE = str(REPOSITORY / "src")
 if SOURCE not in sys.path:
     sys.path.insert(0, SOURCE)
+for site_packages in sorted((REPOSITORY / ".venv" / "lib").glob("python*/site-packages")):
+    if str(site_packages) not in sys.path:
+        sys.path.append(str(site_packages))
 
 from opengrow.orchestration import prepare_solver_design, run_prepared_design  # noqa: E402
 from opengrow.usd.live_results import set_display_mode, update_live_results  # noqa: E402
