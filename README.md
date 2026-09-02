@@ -75,6 +75,16 @@ defaults. Validate live fixture translation and rotation propagation in Kit:
 ./repo.sh --exec tools/kit_validate_usd_solver_input.py
 ```
 
+OGT-103 adds finite emitter-to-sensor visibility segments against transformed
+USD `Cube` prims tagged as `opengrow:occluderShape = "box"`. Contributions are
+masked per emitter, preserving partial shadows from the remaining emitters.
+The solver returns binary visibility fields and per-emitter blocked-ray
+diagnostics. Validate a parked and beam-intersecting occluder in Kit with:
+
+```bash
+./repo.sh --exec tools/kit_validate_occlusion.py
+```
+
 ## Headless Kit/RTX capture
 
 After generating `build/optimization/ppfd_heatmap.usda` on the GPU VM, run

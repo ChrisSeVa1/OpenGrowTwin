@@ -19,6 +19,11 @@ def _discovery():
                 "radiant_power_w": 2.5, "beam_exponent": 1.0, "enabled": True,
                 "position_m": [0, 0, 0.6], "direction": [0, 0, -1],
             }],
+            "occluder": [{
+                "path": "/Box", "shape": "box", "enabled": True,
+                "center_m": [2, 0, 0.3], "axes": [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+                "half_extents_m": [0.1, 0.2, 0.3],
+            }],
         },
     }
 
@@ -29,6 +34,7 @@ def test_discovery_converts_to_solver_design():
     assert design["channels"][0]["id"] == "blue"
     assert design["channels"][0]["emitters"][0]["source_path"] == "/Emitter"
     assert design["channels"][0]["emitters"][0]["direction"] == [0.0, 0.0, -1.0]
+    assert design["occluders"][0]["half_extents_m"] == [0.1, 0.2, 0.3]
 
 
 def test_disabled_emitters_are_excluded():

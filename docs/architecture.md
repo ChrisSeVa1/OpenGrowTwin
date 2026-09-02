@@ -44,6 +44,16 @@ oriented emitters and an oriented planar sensor grid. Emission-angle and
 receiver-incidence terms are evaluated separately, so rotating a fixture has a
 physical effect rather than merely moving its visualization.
 
+## Geometry-aware visibility (OGT-103)
+
+The MVP uses transformed USD cubes tagged as `box` occluder proxies. Their
+world center, oriented axes, and half extents are passed into the CPU solver.
+For each emitter and sensor sample, a finite segment-versus-oriented-box test
+produces a binary visibility value. Only that emitter's blocked contribution
+is removed, so other fixtures and channels continue illuminating the same
+sample. Per-emitter and aggregate blocked-ray counts make the shadow result
+auditable. General triangle-mesh intersection remains outside the MVP path.
+
 ## Current assumptions
 
 - Direct light only; no reflections or occlusion.

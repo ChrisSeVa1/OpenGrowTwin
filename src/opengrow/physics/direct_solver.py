@@ -5,6 +5,7 @@ from __future__ import annotations
 import numpy as np
 
 from .photons import irradiance_to_photon_flux
+from .visibility import visibility_mask
 
 
 def _unit_vector(value, name: str):
@@ -88,10 +89,14 @@ def simulate_design(design: dict):
     wavelengths = np.array([channel["wavelength_nm"] for channel in channels], dtype=float)
     spectral_irradiance = []
     photon_fields = []
+    visibility_fields = []
+    occlusion_diagnostics = []
+    occluders = design.get("occluders", [])
     for channel in channels:
         field = np.zeros(grid.shape[:-1], dtype=float)
         for emitter in channel["emitters"]:
-            field += point_source_irradiance(
+            visible = visibility_mask(grid, emitter["position_m"], occluders)
+            contribution = point_source_irradiance(
                 grid,
                 emitter["position_m"],
                 emitter["radiant_power_w"],
@@ -99,6 +104,16 @@ def simulate_design(design: dict):
                 emitter.get("direction"),
                 receiver_normal,
             )
+            field += contribution * visible
+            visibility_fields.append(visible)
+            blocked = int(visible.size - np.count_nonzero(visible))
+            occlusion_diagnostics.append({
+                "source_path": emitter.get("source_path"),
+                "channel": channel["id"],
+                "blocked_ray_count": blocked,
+                "total_ray_count": int(visible.size),
+                "blocked_fraction": blocked / int(visible.size),
+            })
         spectral_irradiance.append(field)
         photon_fields.append(irradiance_to_photon_flux(field, channel["wavelength_nm"]))
     irradiance = np.stack(spectral_irradiance)
@@ -107,4 +122,15 @@ def simulate_design(design: dict):
     far_red_mask = (wavelengths > 700.0) & (wavelengths <= 800.0)
     ppfd = photons[par_mask].sum(axis=0)
     far_red = photons[far_red_mask].sum(axis=0)
-    return {"grid": grid, "wavelengths_nm": wavelengths, "spectral_irradiance": irradiance, "band_ppfd": photons, "ppfd": ppfd, "far_red": far_red}
+    return {
+        "grid": grid,
+        "wavelengths_nm": wavelengths,
+        "spectral_irradiance": irradiance,
+        "band_ppfd": photons,
+        "ppfd": ppfd,
+        "far_red": far_red,
+        "emitter_visibility": np.stack(visibility_fields),
+        "occlusion_diagnostics": occlusion_diagnostics,
+        "blocked_ray_count": sum(item["blocked_ray_count"] for item in occlusion_diagnostics),
+        "total_ray_count": sum(item["total_ray_count"] for item in occlusion_diagnostics),
+    }

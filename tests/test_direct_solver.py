@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from opengrow.physics.direct_solver import point_source_irradiance, sensor_grid
+from opengrow.physics.direct_solver import point_source_irradiance, sensor_grid, simulate_design
 
 
 def test_inverse_square_on_axis():
@@ -29,3 +29,22 @@ def test_sensor_grid_supports_world_center_and_orientation():
     grid = sensor_grid(2.0, 1.0, 3, 2, center_m=[4, 5, 6], u_axis=[0, 1, 0], v_axis=[-1, 0, 0])
     assert grid.shape == (2, 3, 3)
     assert grid.mean(axis=(0, 1)) == pytest.approx([4, 5, 6])
+
+
+def test_occluder_creates_partial_shadow_and_diagnostics():
+    design = {
+        "grid": {"width_m": 1.0, "depth_m": 0.1, "nx": 3, "ny": 1},
+        "channels": [{"id": "red", "wavelength_nm": 660, "emitters": [{
+            "source_path": "/Red", "position_m": [0, 0, 1], "direction": [0, 0, -1],
+            "radiant_power_w": 1, "beam_exponent": 1,
+        }]}],
+        "occluders": [{
+            "shape": "box", "enabled": True, "center_m": [0, 0, 0.5],
+            "axes": [[1, 0, 0], [0, 1, 0], [0, 0, 1]], "half_extents_m": [0.1, 0.1, 0.1],
+        }],
+    }
+    result = simulate_design(design)
+    assert result["emitter_visibility"].tolist() == [[[True, False, True]]]
+    assert result["blocked_ray_count"] == 1
+    assert result["total_ray_count"] == 3
+    assert result["occlusion_diagnostics"][0]["source_path"] == "/Red"

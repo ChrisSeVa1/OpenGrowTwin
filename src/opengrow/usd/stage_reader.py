@@ -73,6 +73,27 @@ def discover_stage(stage) -> dict:
                 "u_axis": [float(value) for value in u_axis],
                 "v_axis": [float(value) for value in v_axis],
             })
+        elif role == "occluder":
+            shape = str(_required(prim, "opengrow:occluderShape"))
+            if shape != "box" or not prim.IsA(UsdGeom.Cube):
+                raise ValueError(f"{prim.GetPath()}: MVP occluder must be a Cube tagged as box")
+            size = float(_required(prim, "size"))
+            center = transform.ExtractTranslation()
+            basis = [
+                transform.TransformDir(Gf.Vec3d(1.0, 0.0, 0.0)),
+                transform.TransformDir(Gf.Vec3d(0.0, 1.0, 0.0)),
+                transform.TransformDir(Gf.Vec3d(0.0, 0.0, 1.0)),
+            ]
+            lengths = [float(vector.GetLength()) for vector in basis]
+            if any(length <= 0 for length in lengths):
+                raise ValueError(f"{prim.GetPath()}: occluder transform is degenerate")
+            record.update({
+                "enabled": bool(_required(prim, "opengrow:enabled")),
+                "shape": shape,
+                "center_m": [float(value) for value in center],
+                "axes": [[float(value) for value in vector.GetNormalized()] for vector in basis],
+                "half_extents_m": [size * length / 2.0 for length in lengths],
+            })
         entities[role].append(record)
 
     required_roles = ("fixture", "emitter", "sensorPlane", "occluder")
@@ -136,7 +157,27 @@ def entities_to_solver_design(discovered: dict) -> dict:
         })
     if not channels:
         raise ValueError("stage has no enabled emitters")
-    return {"schema_version": SCHEMA_VERSION, "grid": grid, "channels": list(channels.values())}
+    occluders = []
+    for occluder in entities.get("occluder", []):
+        if occluder.get("shape") != "box":
+            raise ValueError(f"{occluder['path']}: unsupported occluder shape")
+        half_extents = [float(value) for value in occluder["half_extents_m"]]
+        if len(half_extents) != 3 or any(value <= 0 for value in half_extents):
+            raise ValueError(f"{occluder['path']}: invalid half extents")
+        occluders.append({
+            "source_path": occluder["path"],
+            "enabled": bool(occluder["enabled"]),
+            "shape": "box",
+            "center_m": [float(value) for value in occluder["center_m"]],
+            "axes": [[float(value) for value in axis] for axis in occluder["axes"]],
+            "half_extents_m": half_extents,
+        })
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "grid": grid,
+        "channels": list(channels.values()),
+        "occluders": occluders,
+    }
 
 
 def stage_to_solver_design(stage) -> dict:
