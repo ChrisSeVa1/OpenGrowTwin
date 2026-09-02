@@ -135,6 +135,13 @@ executed. Six live tool-selection scenarios passed at approximately 1.0-1.6
 seconds per call while the model used about 3.0 GiB VRAM. The existing
 Kit/RTX synchronization test also passed with Nemotron resident on the same L4.
 
+OGT-204 adds a single-tool execution loop. Every model proposal is validated
+again immediately before an explicitly registered handler runs; handler output
+must be finite JSON and is returned to Nemotron for one grounded final answer.
+Mutation handlers additionally require exact, expiring, single-use confirmation
+tokens. The live evidence scenario selected the approved target, executed
+`get_target`, and returned the correct DOI and study limitation.
+
 ## Project layout
 
 - `src/opengrow/physics/` — photon conversion, direct solver, and metrics
@@ -150,6 +157,7 @@ Detailed engineering records:
 - [`docs/day-2-science-openusd-rtx.md`](docs/day-2-science-openusd-rtx.md) — tested solver, optimization, OpenUSD, and headless RTX reproduction guide
 - [`docs/day-3-live-openusd-interaction.md`](docs/day-3-live-openusd-interaction.md) — reproducible OGT-101–106 live scene, occlusion, Kit UI, heatmap, and RTX synchronization record
 - [`docs/ogt-203-model-service.md`](docs/ogt-203-model-service.md) — reproducible local Nemotron service, safety boundary, and live acceptance evidence
+- [`docs/ogt-204-tool-loop.md`](docs/ogt-204-tool-loop.md) — validated dispatch, confirmation enforcement, and grounded-response loop
 
 ## License
 
