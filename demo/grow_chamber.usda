@@ -46,6 +46,20 @@ def Xform "World"
                 custom bool opengrow:enabled = true
                 double3 xformOp:translate = (-0.36, -0.18, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                def DiskLight "RTXLight"
+                {
+                    color3f inputs:color = (0.08, 0.18, 1)
+                    float inputs:intensity = 1125
+                    float inputs:exposure = 0
+                    float inputs:radius = 0.015
+                    bool inputs:normalize = true
+                    custom bool opengrow:visualOnly = true
+                    custom string opengrow:scientificSourcePath = "/World/GrowInstallation/Fixtures/Fixture_01/Emitters/Blue_01"
+                    custom double opengrow:visualIntensityScale = 500
+                    custom double[] opengrow:spectrumWavelengthsNm = [450]
+                    custom double[] opengrow:spectrumRelativePower = [1]
+                }
             }
 
             def Xform "Blue_02"
@@ -59,6 +73,20 @@ def Xform "World"
                 custom bool opengrow:enabled = true
                 double3 xformOp:translate = (0.12, -0.18, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                def DiskLight "RTXLight"
+                {
+                    color3f inputs:color = (0.08, 0.18, 1)
+                    float inputs:intensity = 1125
+                    float inputs:exposure = 0
+                    float inputs:radius = 0.015
+                    bool inputs:normalize = true
+                    custom bool opengrow:visualOnly = true
+                    custom string opengrow:scientificSourcePath = "/World/GrowInstallation/Fixtures/Fixture_01/Emitters/Blue_02"
+                    custom double opengrow:visualIntensityScale = 500
+                    custom double[] opengrow:spectrumWavelengthsNm = [450]
+                    custom double[] opengrow:spectrumRelativePower = [1]
+                }
             }
 
             def Xform "Blue_03"
@@ -72,6 +100,20 @@ def Xform "World"
                 custom bool opengrow:enabled = true
                 double3 xformOp:translate = (-0.12, -0.06, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                def DiskLight "RTXLight"
+                {
+                    color3f inputs:color = (0.08, 0.18, 1)
+                    float inputs:intensity = 1125
+                    float inputs:exposure = 0
+                    float inputs:radius = 0.015
+                    bool inputs:normalize = true
+                    custom bool opengrow:visualOnly = true
+                    custom string opengrow:scientificSourcePath = "/World/GrowInstallation/Fixtures/Fixture_01/Emitters/Blue_03"
+                    custom double opengrow:visualIntensityScale = 500
+                    custom double[] opengrow:spectrumWavelengthsNm = [450]
+                    custom double[] opengrow:spectrumRelativePower = [1]
+                }
             }
 
             def Xform "Blue_04"
@@ -85,6 +127,20 @@ def Xform "World"
                 custom bool opengrow:enabled = true
                 double3 xformOp:translate = (0.36, -0.06, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                def DiskLight "RTXLight"
+                {
+                    color3f inputs:color = (0.08, 0.18, 1)
+                    float inputs:intensity = 1125
+                    float inputs:exposure = 0
+                    float inputs:radius = 0.015
+                    bool inputs:normalize = true
+                    custom bool opengrow:visualOnly = true
+                    custom string opengrow:scientificSourcePath = "/World/GrowInstallation/Fixtures/Fixture_01/Emitters/Blue_04"
+                    custom double opengrow:visualIntensityScale = 500
+                    custom double[] opengrow:spectrumWavelengthsNm = [450]
+                    custom double[] opengrow:spectrumRelativePower = [1]
+                }
             }
 
             def Xform "Blue_05"
@@ -98,6 +154,20 @@ def Xform "World"
                 custom bool opengrow:enabled = true
                 double3 xformOp:translate = (-0.36, 0.06, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                def DiskLight "RTXLight"
+                {
+                    color3f inputs:color = (0.08, 0.18, 1)
+                    float inputs:intensity = 1125
+                    float inputs:exposure = 0
+                    float inputs:radius = 0.015
+                    bool inputs:normalize = true
+                    custom bool opengrow:visualOnly = true
+                    custom string opengrow:scientificSourcePath = "/World/GrowInstallation/Fixtures/Fixture_01/Emitters/Blue_05"
+                    custom double opengrow:visualIntensityScale = 500
+                    custom double[] opengrow:spectrumWavelengthsNm = [450]
+                    custom double[] opengrow:spectrumRelativePower = [1]
+                }
             }
 
             def Xform "Blue_06"
@@ -111,6 +181,20 @@ def Xform "World"
                 custom bool opengrow:enabled = true
                 double3 xformOp:translate = (0.12, 0.06, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                def DiskLight "RTXLight"
+                {
+                    color3f inputs:color = (0.08, 0.18, 1)
+                    float inputs:intensity = 1125
+                    float inputs:exposure = 0
+                    float inputs:radius = 0.015
+                    bool inputs:normalize = true
+                    custom bool opengrow:visualOnly = true
+                    custom string opengrow:scientificSourcePath = "/World/GrowInstallation/Fixtures/Fixture_01/Emitters/Blue_06"
+                    custom double opengrow:visualIntensityScale = 500
+                    custom double[] opengrow:spectrumWavelengthsNm = [450]
+                    custom double[] opengrow:spectrumRelativePower = [1]
+                }
             }
 
             def Xform "Blue_07"
@@ -124,6 +208,20 @@ def Xform "World"
                 custom bool opengrow:enabled = true
                 double3 xformOp:translate = (-0.12, 0.18, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                def DiskLight "RTXLight"
+                {
+                    color3f inputs:color = (0.08, 0.18, 1)
+                    float inputs:intensity = 1125
+                    float inputs:exposure = 0
+                    float inputs:radius = 0.015
+                    bool inputs:normalize = true
+                    custom bool opengrow:visualOnly = true
+                    custom string opengrow:scientificSourcePath = "/World/GrowInstallation/Fixtures/Fixture_01/Emitters/Blue_07"
+                    custom double opengrow:visualIntensityScale = 500
+                    custom double[] opengrow:spectrumWavelengthsNm = [450]
+                    custom double[] opengrow:spectrumRelativePower = [1]
+                }
             }
 
             def Xform "Blue_08"
@@ -137,6 +235,20 @@ def Xform "World"
                 custom bool opengrow:enabled = true
                 double3 xformOp:translate = (0.36, 0.18, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                def DiskLight "RTXLight"
+                {
+                    color3f inputs:color = (0.08, 0.18, 1)
+                    float inputs:intensity = 1125
+                    float inputs:exposure = 0
+                    float inputs:radius = 0.015
+                    bool inputs:normalize = true
+                    custom bool opengrow:visualOnly = true
+                    custom string opengrow:scientificSourcePath = "/World/GrowInstallation/Fixtures/Fixture_01/Emitters/Blue_08"
+                    custom double opengrow:visualIntensityScale = 500
+                    custom double[] opengrow:spectrumWavelengthsNm = [450]
+                    custom double[] opengrow:spectrumRelativePower = [1]
+                }
             }
 
             def Xform "Red_01"
@@ -150,6 +262,20 @@ def Xform "World"
                 custom bool opengrow:enabled = true
                 double3 xformOp:translate = (-0.12, -0.18, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                def DiskLight "RTXLight"
+                {
+                    color3f inputs:color = (1, 0.025, 0.01)
+                    float inputs:intensity = 1125
+                    float inputs:exposure = 0
+                    float inputs:radius = 0.015
+                    bool inputs:normalize = true
+                    custom bool opengrow:visualOnly = true
+                    custom string opengrow:scientificSourcePath = "/World/GrowInstallation/Fixtures/Fixture_01/Emitters/Red_01"
+                    custom double opengrow:visualIntensityScale = 500
+                    custom double[] opengrow:spectrumWavelengthsNm = [660]
+                    custom double[] opengrow:spectrumRelativePower = [1]
+                }
             }
 
             def Xform "Red_02"
@@ -163,6 +289,20 @@ def Xform "World"
                 custom bool opengrow:enabled = true
                 double3 xformOp:translate = (0.36, -0.18, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                def DiskLight "RTXLight"
+                {
+                    color3f inputs:color = (1, 0.025, 0.01)
+                    float inputs:intensity = 1125
+                    float inputs:exposure = 0
+                    float inputs:radius = 0.015
+                    bool inputs:normalize = true
+                    custom bool opengrow:visualOnly = true
+                    custom string opengrow:scientificSourcePath = "/World/GrowInstallation/Fixtures/Fixture_01/Emitters/Red_02"
+                    custom double opengrow:visualIntensityScale = 500
+                    custom double[] opengrow:spectrumWavelengthsNm = [660]
+                    custom double[] opengrow:spectrumRelativePower = [1]
+                }
             }
 
             def Xform "Red_03"
@@ -176,6 +316,20 @@ def Xform "World"
                 custom bool opengrow:enabled = true
                 double3 xformOp:translate = (-0.36, -0.06, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                def DiskLight "RTXLight"
+                {
+                    color3f inputs:color = (1, 0.025, 0.01)
+                    float inputs:intensity = 1125
+                    float inputs:exposure = 0
+                    float inputs:radius = 0.015
+                    bool inputs:normalize = true
+                    custom bool opengrow:visualOnly = true
+                    custom string opengrow:scientificSourcePath = "/World/GrowInstallation/Fixtures/Fixture_01/Emitters/Red_03"
+                    custom double opengrow:visualIntensityScale = 500
+                    custom double[] opengrow:spectrumWavelengthsNm = [660]
+                    custom double[] opengrow:spectrumRelativePower = [1]
+                }
             }
 
             def Xform "Red_04"
@@ -189,6 +343,20 @@ def Xform "World"
                 custom bool opengrow:enabled = true
                 double3 xformOp:translate = (0.12, -0.06, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                def DiskLight "RTXLight"
+                {
+                    color3f inputs:color = (1, 0.025, 0.01)
+                    float inputs:intensity = 1125
+                    float inputs:exposure = 0
+                    float inputs:radius = 0.015
+                    bool inputs:normalize = true
+                    custom bool opengrow:visualOnly = true
+                    custom string opengrow:scientificSourcePath = "/World/GrowInstallation/Fixtures/Fixture_01/Emitters/Red_04"
+                    custom double opengrow:visualIntensityScale = 500
+                    custom double[] opengrow:spectrumWavelengthsNm = [660]
+                    custom double[] opengrow:spectrumRelativePower = [1]
+                }
             }
 
             def Xform "Red_05"
@@ -202,6 +370,20 @@ def Xform "World"
                 custom bool opengrow:enabled = true
                 double3 xformOp:translate = (-0.12, 0.06, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                def DiskLight "RTXLight"
+                {
+                    color3f inputs:color = (1, 0.025, 0.01)
+                    float inputs:intensity = 1125
+                    float inputs:exposure = 0
+                    float inputs:radius = 0.015
+                    bool inputs:normalize = true
+                    custom bool opengrow:visualOnly = true
+                    custom string opengrow:scientificSourcePath = "/World/GrowInstallation/Fixtures/Fixture_01/Emitters/Red_05"
+                    custom double opengrow:visualIntensityScale = 500
+                    custom double[] opengrow:spectrumWavelengthsNm = [660]
+                    custom double[] opengrow:spectrumRelativePower = [1]
+                }
             }
 
             def Xform "Red_06"
@@ -215,6 +397,20 @@ def Xform "World"
                 custom bool opengrow:enabled = true
                 double3 xformOp:translate = (0.36, 0.06, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                def DiskLight "RTXLight"
+                {
+                    color3f inputs:color = (1, 0.025, 0.01)
+                    float inputs:intensity = 1125
+                    float inputs:exposure = 0
+                    float inputs:radius = 0.015
+                    bool inputs:normalize = true
+                    custom bool opengrow:visualOnly = true
+                    custom string opengrow:scientificSourcePath = "/World/GrowInstallation/Fixtures/Fixture_01/Emitters/Red_06"
+                    custom double opengrow:visualIntensityScale = 500
+                    custom double[] opengrow:spectrumWavelengthsNm = [660]
+                    custom double[] opengrow:spectrumRelativePower = [1]
+                }
             }
 
             def Xform "Red_07"
@@ -228,6 +424,20 @@ def Xform "World"
                 custom bool opengrow:enabled = true
                 double3 xformOp:translate = (-0.36, 0.18, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                def DiskLight "RTXLight"
+                {
+                    color3f inputs:color = (1, 0.025, 0.01)
+                    float inputs:intensity = 1125
+                    float inputs:exposure = 0
+                    float inputs:radius = 0.015
+                    bool inputs:normalize = true
+                    custom bool opengrow:visualOnly = true
+                    custom string opengrow:scientificSourcePath = "/World/GrowInstallation/Fixtures/Fixture_01/Emitters/Red_07"
+                    custom double opengrow:visualIntensityScale = 500
+                    custom double[] opengrow:spectrumWavelengthsNm = [660]
+                    custom double[] opengrow:spectrumRelativePower = [1]
+                }
             }
 
             def Xform "Red_08"
@@ -241,6 +451,20 @@ def Xform "World"
                 custom bool opengrow:enabled = true
                 double3 xformOp:translate = (0.12, 0.18, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                def DiskLight "RTXLight"
+                {
+                    color3f inputs:color = (1, 0.025, 0.01)
+                    float inputs:intensity = 1125
+                    float inputs:exposure = 0
+                    float inputs:radius = 0.015
+                    bool inputs:normalize = true
+                    custom bool opengrow:visualOnly = true
+                    custom string opengrow:scientificSourcePath = "/World/GrowInstallation/Fixtures/Fixture_01/Emitters/Red_08"
+                    custom double opengrow:visualIntensityScale = 500
+                    custom double[] opengrow:spectrumWavelengthsNm = [660]
+                    custom double[] opengrow:spectrumRelativePower = [1]
+                }
             }
 
             def Xform "FarRed_01"
@@ -254,6 +478,20 @@ def Xform "World"
                 custom bool opengrow:enabled = true
                 double3 xformOp:translate = (-0.24, -0.12, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                def DiskLight "RTXLight"
+                {
+                    color3f inputs:color = (0.35, 0, 0)
+                    float inputs:intensity = 375
+                    float inputs:exposure = 0
+                    float inputs:radius = 0.015
+                    bool inputs:normalize = true
+                    custom bool opengrow:visualOnly = true
+                    custom string opengrow:scientificSourcePath = "/World/GrowInstallation/Fixtures/Fixture_01/Emitters/FarRed_01"
+                    custom double opengrow:visualIntensityScale = 500
+                    custom double[] opengrow:spectrumWavelengthsNm = [730]
+                    custom double[] opengrow:spectrumRelativePower = [1]
+                }
             }
 
             def Xform "FarRed_02"
@@ -267,6 +505,20 @@ def Xform "World"
                 custom bool opengrow:enabled = true
                 double3 xformOp:translate = (0.24, -0.12, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                def DiskLight "RTXLight"
+                {
+                    color3f inputs:color = (0.35, 0, 0)
+                    float inputs:intensity = 375
+                    float inputs:exposure = 0
+                    float inputs:radius = 0.015
+                    bool inputs:normalize = true
+                    custom bool opengrow:visualOnly = true
+                    custom string opengrow:scientificSourcePath = "/World/GrowInstallation/Fixtures/Fixture_01/Emitters/FarRed_02"
+                    custom double opengrow:visualIntensityScale = 500
+                    custom double[] opengrow:spectrumWavelengthsNm = [730]
+                    custom double[] opengrow:spectrumRelativePower = [1]
+                }
             }
 
             def Xform "FarRed_03"
@@ -280,6 +532,20 @@ def Xform "World"
                 custom bool opengrow:enabled = true
                 double3 xformOp:translate = (-0.24, 0.12, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                def DiskLight "RTXLight"
+                {
+                    color3f inputs:color = (0.35, 0, 0)
+                    float inputs:intensity = 375
+                    float inputs:exposure = 0
+                    float inputs:radius = 0.015
+                    bool inputs:normalize = true
+                    custom bool opengrow:visualOnly = true
+                    custom string opengrow:scientificSourcePath = "/World/GrowInstallation/Fixtures/Fixture_01/Emitters/FarRed_03"
+                    custom double opengrow:visualIntensityScale = 500
+                    custom double[] opengrow:spectrumWavelengthsNm = [730]
+                    custom double[] opengrow:spectrumRelativePower = [1]
+                }
             }
 
             def Xform "FarRed_04"
@@ -293,6 +559,20 @@ def Xform "World"
                 custom bool opengrow:enabled = true
                 double3 xformOp:translate = (0.24, 0.12, 0)
                 uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                def DiskLight "RTXLight"
+                {
+                    color3f inputs:color = (0.35, 0, 0)
+                    float inputs:intensity = 375
+                    float inputs:exposure = 0
+                    float inputs:radius = 0.015
+                    bool inputs:normalize = true
+                    custom bool opengrow:visualOnly = true
+                    custom string opengrow:scientificSourcePath = "/World/GrowInstallation/Fixtures/Fixture_01/Emitters/FarRed_04"
+                    custom double opengrow:visualIntensityScale = 500
+                    custom double[] opengrow:spectrumWavelengthsNm = [730]
+                    custom double[] opengrow:spectrumRelativePower = [1]
+                }
             }
                 }
             }

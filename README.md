@@ -98,6 +98,12 @@ legend. The panel toggles baseline/current visibility and reports mean, min,
 max, CV, uniformity, DLI, far-red, and blocked rays. Run
 `tools/kit_validate_live_results.py` inside Kit for the headless acceptance.
 
+OGT-106 keeps `opengrow:radiantPowerW`, wavelength, enabled state, and emitter
+transform authoritative. Each emitter owns an inherited-transform RTX
+`DiskLight`; synchronization derives its approximate visual color and linearly
+scaled intensity. The scale is explicitly tagged `visualOnly` and is not used
+by the scientific solver. Spectral provenance remains attached to every light.
+
 ## Headless Kit/RTX capture
 
 After generating `build/optimization/ppfd_heatmap.usda` on the GPU VM, run

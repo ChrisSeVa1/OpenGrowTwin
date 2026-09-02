@@ -11,6 +11,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from .rtx_lights import VISUAL_INTENSITY_PER_RADIANT_WATT, visual_intensity, wavelength_to_visual_rgb
+
 
 SCHEMA_VERSION = "0.3.0"
 ROLE_ATTRIBUTE = "opengrow:role"
@@ -100,6 +102,8 @@ def write_live_scene_usda(design: dict, output_path: Path) -> dict:
             emitter_count += 1
             x, y, z = (float(value) for value in emitter["position_m"])
             local_position = (x, y, z - fixture_height)
+            visual_color = wavelength_to_visual_rgb(channel["wavelength_nm"])
+            rtx_intensity = visual_intensity(emitter["radiant_power_w"])
             name = f"{channel['id'].title().replace('_', '')}_{index:02d}"
             emitter_blocks.append(f'''            def Xform "{name}"
             {{
@@ -112,6 +116,20 @@ def write_live_scene_usda(design: dict, output_path: Path) -> dict:
                 custom bool opengrow:enabled = true
                 double3 xformOp:translate = {_v3(local_position)}
                 uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                def DiskLight "RTXLight"
+                {{
+                    color3f inputs:color = {_v3(visual_color)}
+                    float inputs:intensity = {_f(rtx_intensity)}
+                    float inputs:exposure = 0
+                    float inputs:radius = 0.015
+                    bool inputs:normalize = true
+                    custom bool opengrow:visualOnly = true
+                    custom string opengrow:scientificSourcePath = "/World/GrowInstallation/Fixtures/Fixture_01/Emitters/{name}"
+                    custom double opengrow:visualIntensityScale = {_f(VISUAL_INTENSITY_PER_RADIANT_WATT)}
+                    custom double[] opengrow:spectrumWavelengthsNm = [{_f(channel['wavelength_nm'])}]
+                    custom double[] opengrow:spectrumRelativePower = [1]
+                }}
             }}''')
 
     emitters = "\n\n".join(emitter_blocks)

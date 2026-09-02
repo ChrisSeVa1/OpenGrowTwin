@@ -42,11 +42,14 @@ def test_live_scene_contains_discoverable_contract(tmp_path):
     assert 'metersPerUnit = 1' in text
     assert 'upAxis = "Z"' in text
     assert text.count('opengrow:role = "emitter"') == 2
+    assert text.count('def DiskLight "RTXLight"') == 2
     assert 'custom token opengrow:role = "sensorPlane"' in text
     assert 'custom token opengrow:role = "occluder"' in text
     assert 'custom double opengrow:wavelengthNm = 450' in text
     assert 'custom double3 opengrow:emissionDirection = (0, 0, -1)' in text
     assert 'double3 xformOp:translate = (0.1, -0.1, 0)' in text
+    assert 'float inputs:intensity = 1250' in text
+    assert 'custom bool opengrow:visualOnly = true' in text
 
 
 def test_scene_design_validation_rejects_invalid_power():

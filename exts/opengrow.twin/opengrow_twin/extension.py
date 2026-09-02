@@ -21,6 +21,7 @@ if SOURCE not in sys.path:
 
 from opengrow.orchestration import prepare_solver_design, run_prepared_design  # noqa: E402
 from opengrow.usd.live_results import set_display_mode, update_live_results  # noqa: E402
+from opengrow.usd.rtx_lights import sync_rtx_lights  # noqa: E402
 
 
 class OpenGrowTwinExtension(omni.ext.IExt):
@@ -98,7 +99,12 @@ class OpenGrowTwinExtension(omni.ext.IExt):
         if not self._auto_simulate:
             return
         changed = list(notice.GetResyncedPaths()) + list(notice.GetChangedInfoOnlyPaths())
-        if any("/World/GrowInstallation" in str(path) and "/Results" not in str(path) for path in changed):
+        if any(
+            "/World/GrowInstallation" in str(path)
+            and "/Results" not in str(path)
+            and "/RTXLight" not in str(path)
+            for path in changed
+        ):
             self._schedule_debounced_preview()
 
     def _schedule_debounced_preview(self):
@@ -124,6 +130,7 @@ class OpenGrowTwinExtension(omni.ext.IExt):
             if not stage:
                 raise RuntimeError("Open an OpenGrowTwin stage before simulating")
             self._set_status(f"Reading live stage ({reason})…")
+            sync_rtx_lights(stage)
             design = prepare_solver_design(stage, mode)
             self._set_status(f"Simulating {mode} grid…")
             loop = asyncio.get_running_loop()

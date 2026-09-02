@@ -72,6 +72,16 @@ matching-resolution baseline. Visibility switching provides an immediate
 comparison without reopening or replacing the stage. Namespaced attributes
 store the full metric summary alongside the current scientific field.
 
+## Scientific and RTX light synchronization (OGT-106)
+
+Scientific emitter attributes remain the single source of truth. A child RTX
+`DiskLight` inherits each emitter's world transform, while synchronization
+derives enabled intensity, an approximate channel color, and wavelength
+metadata. RTX intensity uses a documented presentation scale of 500 intensity
+units per modeled radiant watt. It makes the scene legible but is never treated
+as a calibrated optical quantity; PPFD continues to come only from the photon
+solver.
+
 ## Current assumptions
 
 - Direct light only; no reflections or occlusion.
