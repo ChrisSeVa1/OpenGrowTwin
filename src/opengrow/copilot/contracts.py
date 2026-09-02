@@ -1,4 +1,4 @@
-"""OGT-201 allowlisted Gemma tool schemas and deterministic safety rules.
+"""OGT-201 allowlisted open-model tool schemas and deterministic safety rules.
 
 The model receives these JSON-compatible declarations. Validation happens in
 ordinary Python before any tool implementation is invoked, keeping model output

@@ -1,0 +1,84 @@
+import json
+
+import pytest
+
+from opengrow.copilot.model_service import (
+    ModelServiceClient,
+    ModelServiceError,
+)
+
+
+def _tool_response(name="inspect_scene", arguments=None):
+    if arguments is None:
+        arguments = {}
+    return {
+        "choices": [{
+            "finish_reason": "tool_calls",
+            "message": {
+                "role": "assistant",
+                "content": "",
+                "tool_calls": [{
+                    "id": "call_123",
+                    "type": "function",
+                    "function": {
+                        "name": name,
+                        "arguments": json.dumps(arguments),
+                    },
+                }],
+            },
+        }],
+        "usage": {"total_tokens": 10},
+        "timings": {"predicted_per_second": 75.0},
+    }
+
+
+def test_rejects_non_loopback_endpoint():
+    with pytest.raises(ModelServiceError, match="loopback-only"):
+        ModelServiceClient(endpoint="http://example.com:8080")
+
+
+def test_accepts_localhost_and_ipv6_loopback():
+    assert ModelServiceClient(endpoint="http://localhost:8080").endpoint == "http://localhost:8080"
+    assert ModelServiceClient(endpoint="http://[::1]:8080").endpoint == "http://[::1]:8080"
+
+
+def test_parses_and_validates_exactly_one_tool_call(monkeypatch):
+    client = ModelServiceClient()
+    monkeypatch.setattr(client, "_post", lambda payload: _tool_response())
+    call = client.request_tool_call("Inspect the scene.")
+    assert call.call_id == "call_123"
+    assert call.name == "inspect_scene"
+    assert call.arguments == {}
+    assert call.usage == {"total_tokens": 10}
+
+
+def test_rejects_unknown_model_tool(monkeypatch):
+    client = ModelServiceClient()
+    monkeypatch.setattr(
+        client,
+        "_post",
+        lambda payload: _tool_response("run_python", {"code": "print('unsafe')"}),
+    )
+    with pytest.raises(ModelServiceError, match="OGT-201 validation"):
+        client.request_tool_call("Run Python.")
+
+
+def test_rejects_ordinary_prose_instead_of_tool_call(monkeypatch):
+    client = ModelServiceClient()
+    monkeypatch.setattr(client, "_post", lambda payload: {
+        "choices": [{
+            "finish_reason": "stop",
+            "message": {"role": "assistant", "content": "The PPFD is probably 200."},
+        }],
+    })
+    with pytest.raises(ModelServiceError, match="did not finish with a tool call"):
+        client.request_tool_call("What is the PPFD?")
+
+
+def test_rejects_malformed_arguments(monkeypatch):
+    client = ModelServiceClient()
+    response = _tool_response()
+    response["choices"][0]["message"]["tool_calls"][0]["function"]["arguments"] = "{bad"
+    monkeypatch.setattr(client, "_post", lambda payload: response)
+    with pytest.raises(ModelServiceError, match="not valid JSON"):
+        client.request_tool_call("Inspect the scene.")

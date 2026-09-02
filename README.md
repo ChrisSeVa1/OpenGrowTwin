@@ -128,6 +128,13 @@ exposes only allowlisted, approved records to the copilot; inconsistent values,
 missing provenance, unknown evidence fields, and universal-optimum claims fail
 validation before model use.
 
+OGT-203 runs NVIDIA Nemotron 3 Nano 4B Q4_K_M through a pinned,
+CUDA-enabled llama.cpp service bound to `127.0.0.1`. The model receives the
+frozen OGT-201 declarations; returned calls are parsed and validated but not
+executed. Six live tool-selection scenarios passed at approximately 1.0-1.6
+seconds per call while the model used about 3.0 GiB VRAM. The existing
+Kit/RTX synchronization test also passed with Nemotron resident on the same L4.
+
 ## Project layout
 
 - `src/opengrow/physics/` — photon conversion, direct solver, and metrics
@@ -142,6 +149,7 @@ Detailed engineering records:
 - [`docs/gcp-setup.md`](docs/gcp-setup.md) — Day 1 GCP/L4 and Kit infrastructure gate
 - [`docs/day-2-science-openusd-rtx.md`](docs/day-2-science-openusd-rtx.md) — tested solver, optimization, OpenUSD, and headless RTX reproduction guide
 - [`docs/day-3-live-openusd-interaction.md`](docs/day-3-live-openusd-interaction.md) — reproducible OGT-101–106 live scene, occlusion, Kit UI, heatmap, and RTX synchronization record
+- [`docs/ogt-203-model-service.md`](docs/ogt-203-model-service.md) — reproducible local Nemotron service, safety boundary, and live acceptance evidence
 
 ## License
 
