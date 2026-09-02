@@ -78,18 +78,16 @@ Python runtime does not ship with pip or PyYAML, so the extension exposes the
 project virtual environment's pure-Python dependencies to Kit. No system-wide
 package mutation is required.
 
-## Remaining visual acceptance
+## Graphical acceptance
 
-From a graphical Kit session:
+A GPU-backed Xorg display on the L4 was viewed through a localhost-only VNC
+server over an SSH tunnel. The Kit window rendered the simulation controls,
+metrics, copilot input, grounded answer, and confirmation controls.
 
-1. open the OpenGrowTwin demo stage;
-2. verify the Copilot input, Ask, Clear, Confirm, and Reject controls render;
-3. submit the 4.5 W blue-channel request;
-4. verify no scene change occurs while the proposal is pending;
-5. reject once and verify no change;
-6. submit again, confirm, and verify the displayed grounded response and scene
-   update.
+The confirmed 4.5 W request completed, refreshed the solver results, and
+displayed a grounded response. A subsequent 5.0 W proposal was rejected; the
+panel reported that no scene change occurred, identified
+`set_channel_power` as the rejected tool, disabled the mutation buttons, and
+retained the previous mean PPFD of 31.08 µmol m⁻² s⁻¹.
 
-This visual check does not block the already-passed safety and execution
-acceptance, but it should be completed before describing the panel UI as
-production-ready.
+Both visual confirmation branches passed.
