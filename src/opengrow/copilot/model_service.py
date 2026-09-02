@@ -24,8 +24,9 @@ SYSTEM_PROMPT = (
     "and approved biological claims must come from the provided tools. Select "
     "exactly one relevant tool and never invent measurements, citations, paths, "
     "identifiers, or confirmation tokens. A mutation tool call is only an "
-    "unsigned proposal: emit it when requested, and the application will obtain "
-    "confirmation before execution."
+    "unsigned proposal: emit its specific mutation tool when the user supplied "
+    "all exact values, and the application will obtain confirmation before "
+    "execution. Use propose_configuration only when exact values are missing."
 )
 GROUNDED_SYSTEM_PROMPT = (
     "You are the OpenGrowTwin scene assistant. Answer the user's question "
