@@ -141,3 +141,20 @@ def test_grounded_answer_rejects_another_tool_call(monkeypatch):
     )
     with pytest.raises(ModelServiceError, match="finish cleanly"):
         client.request_grounded_answer("Inspect.", call, {"fixtures": 1})
+
+
+def test_model_can_return_unsigned_mutation_proposal(monkeypatch):
+    client = ModelServiceClient()
+    arguments = {
+        "fixture_id": "fixture_01",
+        "channel_id": "blue",
+        "radiant_power_w": 4.5,
+    }
+    monkeypatch.setattr(
+        client,
+        "_post",
+        lambda payload: _tool_response("set_channel_power", arguments),
+    )
+    call = client.request_tool_call("Set blue power to 4.5 watts.")
+    assert call.name == "set_channel_power"
+    assert call.arguments == arguments
