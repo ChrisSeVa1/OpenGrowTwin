@@ -563,7 +563,7 @@ It does **not** prove:
 - that RTX intensity is a calibrated radiometric quantity;
 - biological optimality or plant-growth prediction;
 - production-scale performance or multi-user collaboration;
-- completion of the Gemma/open-model integration.
+- completion of the local open-model integration.
 
 ## 9. Competition-facing narrative
 
@@ -586,9 +586,9 @@ The result uses NVIDIA technology where it adds genuine value:
 The product-critical OpenUSD/Kit/RTX vertical slice is complete. The next
 milestone is the guarded open-model path:
 
-1. OGT-201 — freeze Gemma tool schemas and safety rules;
+1. OGT-201 — freeze open-model tool schemas and safety rules;
 2. OGT-202 — create curated evidence records;
-3. OGT-203 — run the selected Gemma inference service;
+3. OGT-203 — run the selected local open-model inference service;
 4. OGT-204 — implement the validated tool-execution loop;
 5. OGT-205 — add the Copilot panel;
 6. OGT-206 — execute open-model regression scenarios.
@@ -605,5 +605,5 @@ Stop the G2 VM when Kit/RTX work is finished:
 gcloud compute instances stop opengrow-gpu --zone=us-central1-b
 ```
 
-Documentation, schemas, evidence records, tool validation, and most Gemma
+Documentation, schemas, evidence records, tool validation, and most open-model
 integration work can be developed without leaving the L4 VM running.
