@@ -22,6 +22,8 @@ if SOURCE not in sys.path:
 from opengrow.orchestration import prepare_solver_design, run_prepared_design  # noqa: E402
 from opengrow.usd.live_results import set_display_mode, update_live_results  # noqa: E402
 from opengrow.usd.rtx_lights import sync_rtx_lights  # noqa: E402
+from opengrow.usd.stage_reader import discover_stage  # noqa: E402
+from .copilot_panel import CopilotPanel  # noqa: E402
 
 
 class OpenGrowTwinExtension(omni.ext.IExt):
@@ -35,6 +37,16 @@ class OpenGrowTwinExtension(omni.ext.IExt):
         self._last_result = None
         self._baselines = {}
         self._display_mode = "current"
+        self._runs = {}
+        self._run_counter = 0
+        self._copilot = CopilotPanel({
+            "inspect_scene": self._copilot_inspect_scene,
+            "get_metrics": self._copilot_get_metrics,
+            "get_occlusion_summary": self._copilot_get_occlusion_summary,
+            "compare_runs": self._copilot_compare_runs,
+            "run_simulation": self._copilot_run_simulation,
+            "set_channel_power": self._copilot_set_channel_power,
+        })
         settings = carb.settings.get_settings()
         self._auto_simulate = settings.get_as_bool("/exts/opengrow.twin/auto_simulate")
         self._debounce_seconds = settings.get_as_float("/exts/opengrow.twin/debounce_seconds") or 0.25
@@ -46,7 +58,7 @@ class OpenGrowTwinExtension(omni.ext.IExt):
         print("[OpenGrowTwin] Interactive simulation extension ready")
 
     def _build_window(self):
-        self._window = ui.Window("OpenGrowTwin", width=390, height=300)
+        self._window = ui.Window("OpenGrowTwin", width=470, height=650)
         with self._window.frame:
             with ui.VStack(spacing=8, height=0):
                 ui.Label("Spectral Lighting Simulation", height=24)
@@ -58,6 +70,7 @@ class OpenGrowTwinExtension(omni.ext.IExt):
                 self._comparison_button = ui.Button("Show Baseline", clicked_fn=self._toggle_comparison)
                 self._status = ui.Label("Ready", word_wrap=True, height=42)
                 self._metrics = ui.Label("No simulation result", word_wrap=True, height=100)
+                self._copilot.build()
 
     def _selected_mode(self):
         index = self._mode.model.get_item_value_model().as_int
@@ -136,6 +149,7 @@ class OpenGrowTwinExtension(omni.ext.IExt):
             loop = asyncio.get_running_loop()
             result = await loop.run_in_executor(None, run_prepared_design, design)
             self._last_result = result
+            self._record_run(result, mode)
             key = tuple(result["mode_shape"])
             baseline = self._baselines.setdefault(key, result)
             update_live_results(stage, result, baseline, self._display_mode)
@@ -164,11 +178,137 @@ class OpenGrowTwinExtension(omni.ext.IExt):
             f"mean_ppfd={metrics['mean_ppfd_umol_m2_s']:.6f}, blocked_rays={blocked}/{total}"
         )
 
+    def _stage(self):
+        stage = omni.usd.get_context().get_stage()
+        if not stage:
+            raise RuntimeError("Open an OpenGrowTwin stage first")
+        return stage
+
+    def _record_run(self, result, mode):
+        self._run_counter += 1
+        run_id = f"run_{self._run_counter:04d}"
+        self._runs[run_id] = {"mode": mode, "result": result}
+        while len(self._runs) > 20:
+            self._runs.pop(next(iter(self._runs)))
+        return run_id
+
+    def _run_record(self, run_id):
+        try:
+            return self._runs[run_id]
+        except KeyError as exc:
+            raise ValueError(f"unknown recorded run {run_id!r}") from exc
+
+    def _copilot_inspect_scene(self):
+        discovered = discover_stage(self._stage())
+        entities = discovered["entities"]
+        channel_power = {}
+        for emitter in entities["emitter"]:
+            if emitter["enabled"]:
+                channel = emitter["channel"]
+                channel_power[channel] = channel_power.get(channel, 0.0) + emitter["radiant_power_w"]
+        return {
+            "schema_version": discovered["schema_version"],
+            "entity_counts": {name: len(records) for name, records in entities.items()},
+            "enabled_channel_power_w": channel_power,
+            "recorded_run_ids": list(self._runs),
+        }
+
+    def _copilot_get_metrics(self, run_id):
+        record = self._run_record(run_id)
+        return {
+            "run_id": run_id,
+            "mode": record["mode"],
+            "mode_shape": record["result"]["mode_shape"],
+            "metrics": record["result"]["metrics"],
+        }
+
+    def _copilot_get_occlusion_summary(self, run_id):
+        result = self._run_record(run_id)["result"]
+        blocked = int(result["blocked_ray_count"])
+        total = int(result["total_ray_count"])
+        return {
+            "run_id": run_id,
+            "blocked_ray_count": blocked,
+            "total_ray_count": total,
+            "blocked_fraction": blocked / total if total else 0.0,
+        }
+
+    def _copilot_compare_runs(self, baseline_run_id, candidate_run_id):
+        baseline = self._run_record(baseline_run_id)["result"]["metrics"]
+        candidate = self._run_record(candidate_run_id)["result"]["metrics"]
+        common = sorted(set(baseline) & set(candidate))
+        return {
+            "baseline_run_id": baseline_run_id,
+            "candidate_run_id": candidate_run_id,
+            "metric_deltas": {
+                name: float(candidate[name]) - float(baseline[name])
+                for name in common
+                if isinstance(baseline[name], (int, float))
+                and isinstance(candidate[name], (int, float))
+            },
+        }
+
+    def _copilot_run_simulation(self, mode):
+        stage = self._stage()
+        sync_rtx_lights(stage)
+        design = prepare_solver_design(stage, mode)
+        result = run_prepared_design(design)
+        self._last_result = result
+        run_id = self._record_run(result, mode)
+        key = tuple(result["mode_shape"])
+        baseline = self._baselines.setdefault(key, result)
+        update_live_results(stage, result, baseline, self._display_mode)
+        self._show_result(result, mode)
+        return {
+            "run_id": run_id,
+            "mode": mode,
+            "mode_shape": result["mode_shape"],
+            "metrics": result["metrics"],
+            "blocked_ray_count": result["blocked_ray_count"],
+            "total_ray_count": result["total_ray_count"],
+        }
+
+    def _copilot_set_channel_power(self, fixture_id, channel_id, radiant_power_w):
+        stage = self._stage()
+        discovered = discover_stage(stage)
+        fixtures = [
+            item for item in discovered["entities"]["fixture"]
+            if item["path"].rsplit("/", 1)[-1].lower() == fixture_id.lower()
+        ]
+        if len(fixtures) != 1:
+            raise ValueError(f"fixture {fixture_id!r} did not resolve uniquely")
+        prefix = fixtures[0]["path"] + "/"
+        emitters = [
+            item for item in discovered["entities"]["emitter"]
+            if item["path"].startswith(prefix) and item["channel"] == channel_id
+        ]
+        if not emitters:
+            raise ValueError(f"fixture {fixture_id!r} has no {channel_id!r} emitters")
+        before = sum(item["radiant_power_w"] for item in emitters)
+        per_emitter = float(radiant_power_w) / len(emitters)
+        for emitter in emitters:
+            attribute = stage.GetPrimAtPath(emitter["path"]).GetAttribute("opengrow:radiantPowerW")
+            if not attribute:
+                raise ValueError(f"{emitter['path']}: missing opengrow:radiantPowerW")
+            attribute.Set(per_emitter)
+        sync_rtx_lights(stage)
+        return {
+            "fixture_id": fixture_id,
+            "channel_id": channel_id,
+            "before_total_radiant_power_w": before,
+            "after_total_radiant_power_w": float(radiant_power_w),
+            "emitter_count": len(emitters),
+            "per_emitter_radiant_power_w": per_emitter,
+            "scene_changed": True,
+            "simulation_required": True,
+        }
+
     def _set_status(self, text):
         if self._status:
             self._status.text = text
 
     def on_shutdown(self):
+        self._copilot.shutdown()
         self._cancel_run()
         if self._stage_notice is not None:
             self._stage_notice.Revoke()
