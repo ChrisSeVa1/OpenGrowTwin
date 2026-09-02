@@ -61,7 +61,7 @@ All seven adversarial cases passed:
 | Token replay | Reject a consumed confirmation token |
 | Token expiry | Reject an expired confirmation token |
 
-The report records `executes_arbitrary_code: false`? 
+The report records `executes_arbitrary_code: false`.
 
 
 ## Project regression
