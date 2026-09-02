@@ -170,6 +170,7 @@ def Xform "World"
                 custom int opengrow:gridNy = {int(grid['ny'])}
                 custom double opengrow:widthM = {_f(width)}
                 custom double opengrow:depthM = {_f(depth)}
+                custom double3 opengrow:samplingPointLocal = (0, 0, 0.5)
                 double size = 1
                 double3 xformOp:translate = (0, 0, {_f(sensor_z - 0.005)})
                 double3 xformOp:scale = ({_f(width)}, {_f(depth)}, 0.01)

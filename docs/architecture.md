@@ -30,6 +30,20 @@ discovered by `opengrow:role`, never by fixed paths:
 `opengrow.usd.stage_reader.discover_stage()` resolves emitter positions and
 directions in world space inside Kit. This is the input boundary for OGT-102.
 
+## Live stage to solver adapter (OGT-102)
+
+`stage_to_solver_design()` converts the open stage into the deterministic
+solver model. It groups enabled emitters by channel and transfers wavelength,
+radiant power, beam exponent, world position, and world direction. It also
+transfers the selected sensor plane's dimensions, grid resolution, world
+center, and local U/V axes.
+
+The direct solver's backward-compatible default remains a horizontal receiver
+and downward-facing emitters. Live-stage inputs can additionally provide
+oriented emitters and an oriented planar sensor grid. Emission-angle and
+receiver-incidence terms are evaluated separately, so rotating a fixture has a
+physical effect rather than merely moving its visualization.
+
 ## Current assumptions
 
 - Direct light only; no reflections or occlusion.

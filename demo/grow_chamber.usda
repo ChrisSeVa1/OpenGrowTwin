@@ -308,6 +308,7 @@ def Xform "World"
                 custom int opengrow:gridNy = 25
                 custom double opengrow:widthM = 1
                 custom double opengrow:depthM = 0.6
+                custom double3 opengrow:samplingPointLocal = (0, 0, 0.5)
                 double size = 1
                 double3 xformOp:translate = (0, 0, -0.005)
                 double3 xformOp:scale = (1, 0.6, 0.01)

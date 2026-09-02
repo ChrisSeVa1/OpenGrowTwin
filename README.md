@@ -65,6 +65,16 @@ Inside Kit, validate discovery and world-transform extraction with:
 ./repo.sh --exec tools/kit_validate_live_scene.py demo/grow_chamber.usda
 ```
 
+The OGT-102 adapter groups the discovered world-space emitters into the
+existing solver channel model. It also transfers the sensor-plane dimensions,
+resolution, center, and orientation. The direct solver accepts emitter
+direction and receiver orientation while retaining the original downward-light
+defaults. Validate live fixture translation and rotation propagation in Kit:
+
+```bash
+./repo.sh --exec tools/kit_validate_usd_solver_input.py
+```
+
 ## Headless Kit/RTX capture
 
 After generating `build/optimization/ppfd_heatmap.usda` on the GPU VM, run
