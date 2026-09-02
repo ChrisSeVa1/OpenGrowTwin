@@ -53,6 +53,12 @@ def set_channel_power(fixture_id, channel_id, radiant_power_w):
     }
 
 
+before = discover_stage(stage)
+before_total = sum(
+    item["radiant_power_w"] for item in before["entities"]["emitter"]
+    if item["channel"] == "blue"
+)
+
 prompt = "Set the total blue-channel radiant power of fixture_01 to 4.5 watts."
 client = ModelServiceClient()
 executor = ToolExecutor({"set_channel_power": set_channel_power})
@@ -64,13 +70,13 @@ if call.arguments != expected:
     raise AssertionError(f"unexpected proposed arguments: {call.arguments!r}")
 
 # The unsigned model proposal must not execute.
-before = discover_stage(stage)
-before_total = sum(
-    item["radiant_power_w"] for item in before["entities"]["emitter"]
+still_before = discover_stage(stage)
+still_before_total = sum(
+    item["radiant_power_w"] for item in still_before["entities"]["emitter"]
     if item["channel"] == "blue"
 )
-if abs(before_total - 45.0) > 1e-12:
-    raise AssertionError("unexpected demo baseline or mutation occurred before confirmation")
+if abs(still_before_total - before_total) > 1e-12:
+    raise AssertionError("scene changed before explicit confirmation")
 
 token = executor.issue_confirmation(call.name, call.arguments)
 execution = executor.execute(call.name, {**call.arguments, "confirmation_token": token})
