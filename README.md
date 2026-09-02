@@ -24,6 +24,8 @@ opengrow simulate demo/design.json \
 opengrow optimize demo/design.json \
   --target data/targets/phalaenopsis_reference.yaml \
   --out build/optimization
+
+opengrow scene demo/design.json --out demo/grow_chamber.usda
 ```
 
 The command writes `ppfd.npy`, `band_ppfd.npy`, `spectral_irradiance.npy`, `metrics.json`, and `result.json`.
@@ -49,6 +51,19 @@ with exact PPFD values in `primvars:opengrow:ppfd`, display colors in
 `primvars:displayColor`, quad topology, grid dimensions, and namespaced
 summary metrics. Kit can sublayer or reference this result without importing
 the solver into its Python environment.
+
+The `scene` command authors the OGT-101 live-stage contract. The stage is
+Z-up, uses metres, and identifies fixtures, emitters, sensor planes,
+occluders, and results with `opengrow:role`. Emitters carry wavelength,
+radiant power, beam exponent, enabled state, and a local `-Z` emission
+direction. Fixture transforms therefore provide the authoritative movable
+state for the next solver adapter rather than hard-coded world coordinates.
+
+Inside Kit, validate discovery and world-transform extraction with:
+
+```bash
+./repo.sh --exec tools/kit_validate_live_scene.py demo/grow_chamber.usda
+```
 
 ## Headless Kit/RTX capture
 

@@ -12,6 +12,7 @@ from .physics.metrics import summarize
 from .optimize.optimizer import optimize_design
 from .visualization.heatmap import render_comparison
 from .usd.heatmap import write_heatmap_usda
+from .usd.scene_contract import write_live_scene_usda
 
 
 def simulate(design_path: Path, target_path: Path | None, out_dir: Path) -> dict:
@@ -93,6 +94,9 @@ def main(argv=None) -> int:
     optimize_command.add_argument("design", type=Path)
     optimize_command.add_argument("--target", type=Path, required=True)
     optimize_command.add_argument("--out", type=Path, required=True)
+    scene_command = subparsers.add_parser("scene", help="author the authoritative live OpenUSD scene")
+    scene_command.add_argument("design", type=Path)
+    scene_command.add_argument("--out", type=Path, required=True)
     args = parser.parse_args(argv)
     if args.command == "simulate":
         contract = simulate(args.design, args.target, args.out)
@@ -105,4 +109,8 @@ def main(argv=None) -> int:
             "baseline": comparison["baseline"],
             "optimized": comparison["optimized"],
         }, indent=2))
+    elif args.command == "scene":
+        design = json.loads(args.design.read_text(encoding="utf-8"))
+        contract = write_live_scene_usda(design, args.out)
+        print(json.dumps(contract, indent=2))
     return 0

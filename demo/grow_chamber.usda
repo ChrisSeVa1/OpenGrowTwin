@@ -5,12 +5,334 @@
     upAxis = "Z"
 )
 
-def Xform "World" {
-    def Xform "GrowChamber" {}
-    def Xform "Fixture" {
-        custom string opengrow:description = "MVP three-channel horticultural fixture"
-    }
-    def Xform "Canopy" {
-        custom string opengrow:resultAsset = "../build/results/result.json"
+def Xform "World"
+{
+    custom string opengrow:schemaVersion = "0.3.0"
+    custom token opengrow:coordinateSystem = "rightHanded_Zup"
+    custom token opengrow:emitterForwardAxis = "-Z"
+
+    def Xform "GrowInstallation" (kind = "assembly")
+    {
+        custom token opengrow:role = "installation"
+
+        def Scope "Fixtures"
+        {
+            def Xform "Fixture_01" (kind = "component")
+            {
+                custom token opengrow:role = "fixture"
+                custom string opengrow:fixtureId = "fixture_01"
+                double3 xformOp:translate = (0, 0, 0.6)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                def Cube "Housing"
+                {
+                    double size = 1
+                    float3[] extent = [(-0.48, -0.28, -0.025), (0.48, 0.28, 0.025)]
+                    color3f[] primvars:displayColor = [(0.12, 0.14, 0.16)]
+                    double3 xformOp:scale = (0.96, 0.56, 0.05)
+                    uniform token[] xformOpOrder = ["xformOp:scale"]
+                }
+
+                def Scope "Emitters"
+                {
+            def Xform "Blue_01"
+            {
+                custom token opengrow:role = "emitter"
+                custom token opengrow:channel = "blue"
+                custom double opengrow:wavelengthNm = 450
+                custom double opengrow:radiantPowerW = 2.25
+                custom double opengrow:beamExponent = 1
+                custom double3 opengrow:emissionDirection = (0, 0, -1)
+                custom bool opengrow:enabled = true
+                double3 xformOp:translate = (-0.36, -0.18, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Xform "Blue_02"
+            {
+                custom token opengrow:role = "emitter"
+                custom token opengrow:channel = "blue"
+                custom double opengrow:wavelengthNm = 450
+                custom double opengrow:radiantPowerW = 2.25
+                custom double opengrow:beamExponent = 1
+                custom double3 opengrow:emissionDirection = (0, 0, -1)
+                custom bool opengrow:enabled = true
+                double3 xformOp:translate = (0.12, -0.18, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Xform "Blue_03"
+            {
+                custom token opengrow:role = "emitter"
+                custom token opengrow:channel = "blue"
+                custom double opengrow:wavelengthNm = 450
+                custom double opengrow:radiantPowerW = 2.25
+                custom double opengrow:beamExponent = 1
+                custom double3 opengrow:emissionDirection = (0, 0, -1)
+                custom bool opengrow:enabled = true
+                double3 xformOp:translate = (-0.12, -0.06, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Xform "Blue_04"
+            {
+                custom token opengrow:role = "emitter"
+                custom token opengrow:channel = "blue"
+                custom double opengrow:wavelengthNm = 450
+                custom double opengrow:radiantPowerW = 2.25
+                custom double opengrow:beamExponent = 1
+                custom double3 opengrow:emissionDirection = (0, 0, -1)
+                custom bool opengrow:enabled = true
+                double3 xformOp:translate = (0.36, -0.06, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Xform "Blue_05"
+            {
+                custom token opengrow:role = "emitter"
+                custom token opengrow:channel = "blue"
+                custom double opengrow:wavelengthNm = 450
+                custom double opengrow:radiantPowerW = 2.25
+                custom double opengrow:beamExponent = 1
+                custom double3 opengrow:emissionDirection = (0, 0, -1)
+                custom bool opengrow:enabled = true
+                double3 xformOp:translate = (-0.36, 0.06, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Xform "Blue_06"
+            {
+                custom token opengrow:role = "emitter"
+                custom token opengrow:channel = "blue"
+                custom double opengrow:wavelengthNm = 450
+                custom double opengrow:radiantPowerW = 2.25
+                custom double opengrow:beamExponent = 1
+                custom double3 opengrow:emissionDirection = (0, 0, -1)
+                custom bool opengrow:enabled = true
+                double3 xformOp:translate = (0.12, 0.06, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Xform "Blue_07"
+            {
+                custom token opengrow:role = "emitter"
+                custom token opengrow:channel = "blue"
+                custom double opengrow:wavelengthNm = 450
+                custom double opengrow:radiantPowerW = 2.25
+                custom double opengrow:beamExponent = 1
+                custom double3 opengrow:emissionDirection = (0, 0, -1)
+                custom bool opengrow:enabled = true
+                double3 xformOp:translate = (-0.12, 0.18, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Xform "Blue_08"
+            {
+                custom token opengrow:role = "emitter"
+                custom token opengrow:channel = "blue"
+                custom double opengrow:wavelengthNm = 450
+                custom double opengrow:radiantPowerW = 2.25
+                custom double opengrow:beamExponent = 1
+                custom double3 opengrow:emissionDirection = (0, 0, -1)
+                custom bool opengrow:enabled = true
+                double3 xformOp:translate = (0.36, 0.18, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Xform "Red_01"
+            {
+                custom token opengrow:role = "emitter"
+                custom token opengrow:channel = "red"
+                custom double opengrow:wavelengthNm = 660
+                custom double opengrow:radiantPowerW = 2.25
+                custom double opengrow:beamExponent = 1
+                custom double3 opengrow:emissionDirection = (0, 0, -1)
+                custom bool opengrow:enabled = true
+                double3 xformOp:translate = (-0.12, -0.18, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Xform "Red_02"
+            {
+                custom token opengrow:role = "emitter"
+                custom token opengrow:channel = "red"
+                custom double opengrow:wavelengthNm = 660
+                custom double opengrow:radiantPowerW = 2.25
+                custom double opengrow:beamExponent = 1
+                custom double3 opengrow:emissionDirection = (0, 0, -1)
+                custom bool opengrow:enabled = true
+                double3 xformOp:translate = (0.36, -0.18, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Xform "Red_03"
+            {
+                custom token opengrow:role = "emitter"
+                custom token opengrow:channel = "red"
+                custom double opengrow:wavelengthNm = 660
+                custom double opengrow:radiantPowerW = 2.25
+                custom double opengrow:beamExponent = 1
+                custom double3 opengrow:emissionDirection = (0, 0, -1)
+                custom bool opengrow:enabled = true
+                double3 xformOp:translate = (-0.36, -0.06, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Xform "Red_04"
+            {
+                custom token opengrow:role = "emitter"
+                custom token opengrow:channel = "red"
+                custom double opengrow:wavelengthNm = 660
+                custom double opengrow:radiantPowerW = 2.25
+                custom double opengrow:beamExponent = 1
+                custom double3 opengrow:emissionDirection = (0, 0, -1)
+                custom bool opengrow:enabled = true
+                double3 xformOp:translate = (0.12, -0.06, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Xform "Red_05"
+            {
+                custom token opengrow:role = "emitter"
+                custom token opengrow:channel = "red"
+                custom double opengrow:wavelengthNm = 660
+                custom double opengrow:radiantPowerW = 2.25
+                custom double opengrow:beamExponent = 1
+                custom double3 opengrow:emissionDirection = (0, 0, -1)
+                custom bool opengrow:enabled = true
+                double3 xformOp:translate = (-0.12, 0.06, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Xform "Red_06"
+            {
+                custom token opengrow:role = "emitter"
+                custom token opengrow:channel = "red"
+                custom double opengrow:wavelengthNm = 660
+                custom double opengrow:radiantPowerW = 2.25
+                custom double opengrow:beamExponent = 1
+                custom double3 opengrow:emissionDirection = (0, 0, -1)
+                custom bool opengrow:enabled = true
+                double3 xformOp:translate = (0.36, 0.06, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Xform "Red_07"
+            {
+                custom token opengrow:role = "emitter"
+                custom token opengrow:channel = "red"
+                custom double opengrow:wavelengthNm = 660
+                custom double opengrow:radiantPowerW = 2.25
+                custom double opengrow:beamExponent = 1
+                custom double3 opengrow:emissionDirection = (0, 0, -1)
+                custom bool opengrow:enabled = true
+                double3 xformOp:translate = (-0.36, 0.18, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Xform "Red_08"
+            {
+                custom token opengrow:role = "emitter"
+                custom token opengrow:channel = "red"
+                custom double opengrow:wavelengthNm = 660
+                custom double opengrow:radiantPowerW = 2.25
+                custom double opengrow:beamExponent = 1
+                custom double3 opengrow:emissionDirection = (0, 0, -1)
+                custom bool opengrow:enabled = true
+                double3 xformOp:translate = (0.12, 0.18, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Xform "FarRed_01"
+            {
+                custom token opengrow:role = "emitter"
+                custom token opengrow:channel = "far_red"
+                custom double opengrow:wavelengthNm = 730
+                custom double opengrow:radiantPowerW = 0.75
+                custom double opengrow:beamExponent = 1
+                custom double3 opengrow:emissionDirection = (0, 0, -1)
+                custom bool opengrow:enabled = true
+                double3 xformOp:translate = (-0.24, -0.12, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Xform "FarRed_02"
+            {
+                custom token opengrow:role = "emitter"
+                custom token opengrow:channel = "far_red"
+                custom double opengrow:wavelengthNm = 730
+                custom double opengrow:radiantPowerW = 0.75
+                custom double opengrow:beamExponent = 1
+                custom double3 opengrow:emissionDirection = (0, 0, -1)
+                custom bool opengrow:enabled = true
+                double3 xformOp:translate = (0.24, -0.12, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Xform "FarRed_03"
+            {
+                custom token opengrow:role = "emitter"
+                custom token opengrow:channel = "far_red"
+                custom double opengrow:wavelengthNm = 730
+                custom double opengrow:radiantPowerW = 0.75
+                custom double opengrow:beamExponent = 1
+                custom double3 opengrow:emissionDirection = (0, 0, -1)
+                custom bool opengrow:enabled = true
+                double3 xformOp:translate = (-0.24, 0.12, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Xform "FarRed_04"
+            {
+                custom token opengrow:role = "emitter"
+                custom token opengrow:channel = "far_red"
+                custom double opengrow:wavelengthNm = 730
+                custom double opengrow:radiantPowerW = 0.75
+                custom double opengrow:beamExponent = 1
+                custom double3 opengrow:emissionDirection = (0, 0, -1)
+                custom bool opengrow:enabled = true
+                double3 xformOp:translate = (0.24, 0.12, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+                }
+            }
+        }
+
+        def Scope "SensorPlanes"
+        {
+            def Cube "CanopyPlane"
+            {
+                custom token opengrow:role = "sensorPlane"
+                custom string opengrow:sensorId = "canopy_plane"
+                custom int opengrow:gridNx = 41
+                custom int opengrow:gridNy = 25
+                custom double opengrow:widthM = 1
+                custom double opengrow:depthM = 0.6
+                double size = 1
+                double3 xformOp:translate = (0, 0, -0.005)
+                double3 xformOp:scale = (1, 0.6, 0.01)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+            }
+        }
+
+        def Scope "Occluders"
+        {
+            def Cube "Occluder_01"
+            {
+                custom token opengrow:role = "occluder"
+                custom string opengrow:occluderId = "occluder_01"
+                custom bool opengrow:enabled = true
+                double size = 1
+                double3 xformOp:translate = (0.65, 0, 0.3)
+                double3 xformOp:scale = (0.12, 0.35, 0.3)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+            }
+        }
+
+        def Xform "Results"
+        {
+            custom token opengrow:role = "results"
+            custom string opengrow:resultAsset = "../build/optimization/ppfd_heatmap.usda"
+        }
     }
 }
