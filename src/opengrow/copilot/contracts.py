@@ -7,6 +7,7 @@ away from arbitrary Python, shell commands, file paths, and USD prim paths.
 
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import dataclass
 import hashlib
 import json
@@ -146,6 +147,35 @@ TOOL_SCHEMAS_BY_NAME = {
 }
 
 
+def _model_tool_schema(declaration: dict) -> dict:
+    """Return a model-facing declaration with unsigned mutation arguments."""
+    schema = deepcopy(declaration)
+    function = schema["function"]
+    name = function["name"]
+    if name in MUTATING_TOOLS:
+        parameters = function["parameters"]
+        parameters["properties"].pop("confirmation_token", None)
+        parameters["required"] = [
+            key for key in parameters["required"] if key != "confirmation_token"
+        ]
+        function["description"] = (
+            "Propose this exact bounded mutation when the user supplied every "
+            "required value. This call does not execute; the application will "
+            "show the exact arguments and require explicit confirmation."
+        )
+        function["x-opengrow-effect"] = "proposal_requires_confirmation"
+    elif name == "propose_configuration":
+        function["description"] = (
+            "Recommend only an action category when exact mutation values are "
+            "not yet known. Do not use this when the user supplied all values "
+            "required by a specific mutation tool."
+        )
+    return schema
+
+
+MODEL_TOOL_SCHEMAS = tuple(_model_tool_schema(item) for item in TOOL_SCHEMAS)
+
+
 def _validate_value(value: Any, schema: dict, path: str) -> None:
     expected = schema.get("type")
     if expected == "string":
@@ -197,6 +227,13 @@ def _validate_arguments(name: str, arguments: Any, *, confirmation_required: boo
             if not minimum <= power <= maximum:
                 raise ContractError(f"set_channel_power.radiant_power_w exceeds {channel} bounds")
     return dict(arguments)
+
+
+def validate_tool_proposal(name: str, arguments: Any) -> dict:
+    """Validate a model proposal without allowing it to supply confirmation."""
+    if name not in TOOL_SCHEMAS_BY_NAME:
+        raise ContractError(f"unknown tool {name!r}")
+    return _validate_arguments(name, arguments, confirmation_required=False)
 
 
 def validate_tool_call(name: str, arguments: Any) -> dict:

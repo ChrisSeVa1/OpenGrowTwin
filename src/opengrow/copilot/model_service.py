@@ -14,7 +14,7 @@ import time
 from typing import Any
 from urllib import error, parse, request
 
-from .contracts import TOOL_SCHEMAS, validate_tool_call
+from .contracts import MODEL_TOOL_SCHEMAS, validate_tool_proposal
 
 
 DEFAULT_ENDPOINT = "http://127.0.0.1:8080"
@@ -23,7 +23,10 @@ SYSTEM_PROMPT = (
     "You are the OpenGrowTwin scene assistant. Current scientific measurements "
     "and approved biological claims must come from the provided tools. Select "
     "exactly one relevant tool and never invent measurements, citations, paths, "
-    "identifiers, or confirmation tokens."
+    "identifiers, or confirmation tokens. A mutation tool call is only an "
+    "unsigned proposal: emit its specific mutation tool when the user supplied "
+    "all exact values, and the application will obtain confirmation before "
+    "execution. Use propose_configuration only when exact values are missing."
 )
 GROUNDED_SYSTEM_PROMPT = (
     "You are the OpenGrowTwin scene assistant. Answer the user's question "
@@ -134,7 +137,7 @@ class ModelServiceClient:
         prompt: str,
         *,
         system_prompt: str = SYSTEM_PROMPT,
-        max_tokens: int = 256,
+        max_tokens: int = 512,
     ) -> ModelToolCall:
         if not prompt.strip():
             raise ValueError("prompt must not be empty")
@@ -145,7 +148,7 @@ class ModelServiceClient:
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt},
             ],
-            "tools": list(TOOL_SCHEMAS),
+            "tools": list(MODEL_TOOL_SCHEMAS),
             "tool_choice": "auto",
             "temperature": 0,
             "max_tokens": max_tokens,
@@ -157,7 +160,9 @@ class ModelServiceClient:
             raise ModelServiceError("model response must contain exactly one choice")
         choice = choices[0]
         if choice.get("finish_reason") != "tool_calls":
-            raise ModelServiceError("model did not finish with a tool call")
+            raise ModelServiceError(
+                f"model did not finish with a tool call: {choice.get('finish_reason')!r}"
+            )
         message = choice.get("message")
         if not isinstance(message, dict):
             raise ModelServiceError("model response is missing the assistant message")
@@ -184,7 +189,7 @@ class ModelServiceClient:
         else:
             arguments = raw_arguments
         try:
-            validated = validate_tool_call(name, arguments)
+            validated = validate_tool_proposal(name, arguments)
         except (KeyError, ValueError) as exc:
             raise ModelServiceError(f"tool call failed OGT-201 validation: {exc}") from exc
 
