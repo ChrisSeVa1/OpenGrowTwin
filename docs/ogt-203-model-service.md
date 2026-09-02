@@ -15,7 +15,7 @@ into Kit remains OGT-204.
 | Snapshot | `ba223d14e45525f7fae81db77ea8cabeb2fc6c25` |
 | File | `NVIDIA-Nemotron3-Nano-4B-Q4_K_M.gguf` |
 | File size | 2,837,072,864 bytes |
-| Hugging Face blob identifier | `be5d9a656a51922f24f1f09a759cebb694e1f5d9728bf0ef9f8c972c5a0b5ef2` |
+| SHA-256 | `be5d9a656a51922f24f1f09a759cebb694e1f5d9728bf0ef9f8c972c5a0b5ef2` |
 | Runtime context | 8,192 tokens |
 | License | NVIDIA Nemotron Open Model License; verify upstream terms for redistribution |
 
@@ -108,15 +108,18 @@ returned a correctly structured `get_scene_metrics` test call with no visible
 prose. This demonstrates why model text is not a scientific authority and why
 OGT-201 validation and deterministic tools remain mandatory.
 
-## Completion gate
+## Validated completion result
 
-OGT-203 is complete only when:
+On the recorded L4 VM:
 
-1. the full repository test suite passes;
-2. the live six-case acceptance report passes;
-3. the service remains bound to loopback;
-4. model/runtime provenance is recorded;
-5. Kit/RTX can run concurrently without GPU allocation failure.
+1. all 63 repository tests passed in 2.07 seconds;
+2. all six live tool-selection cases passed;
+3. the service remained bound to `127.0.0.1:8080`;
+4. the independently calculated SHA-256 matched the Hugging Face blob identifier;
+5. the existing OGT-106 Kit/RTX synchronization validation passed with
+   Nemotron resident on the same L4;
+6. the model health endpoint remained `{"status":"ok"}` after Kit exited;
+7. post-Kit model allocation was 3,026 MiB (3,035 MiB total GPU usage).
 
-The fifth check measures coexistence only. Tool execution and the Kit copilot
-panel are intentionally deferred to OGT-204 and OGT-205.
+The coexistence check validates resource compatibility only. Tool execution and
+the Kit copilot panel remain intentionally deferred to OGT-204 and OGT-205.
