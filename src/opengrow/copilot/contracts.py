@@ -158,7 +158,18 @@ def _model_tool_schema(declaration: dict) -> dict:
         parameters["required"] = [
             key for key in parameters["required"] if key != "confirmation_token"
         ]
+        function["description"] = (
+            "Propose this exact bounded mutation when the user supplied every "
+            "required value. This call does not execute; the application will "
+            "show the exact arguments and require explicit confirmation."
+        )
         function["x-opengrow-effect"] = "proposal_requires_confirmation"
+    elif name == "propose_configuration":
+        function["description"] = (
+            "Recommend only an action category when exact mutation values are "
+            "not yet known. Do not use this when the user supplied all values "
+            "required by a specific mutation tool."
+        )
     return schema
 
 
