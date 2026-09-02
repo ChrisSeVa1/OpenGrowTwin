@@ -3,8 +3,10 @@
 from .contracts import (
     ConfirmationStore,
     ContractError,
+    MODEL_TOOL_SCHEMAS,
     TOOL_SCHEMAS,
     validate_tool_call,
+    validate_tool_proposal,
 )
 from .evidence import ApprovedEvidenceStore, EvidenceError
 from .execution import ToolExecutionError, ToolExecutionResult, ToolExecutor
@@ -19,8 +21,10 @@ from .model_service import (
 __all__ = [
     "ConfirmationStore",
     "ContractError",
+    "MODEL_TOOL_SCHEMAS",
     "TOOL_SCHEMAS",
     "validate_tool_call",
+    "validate_tool_proposal",
     "ApprovedEvidenceStore",
     "EvidenceError",
     "ToolExecutionError",
