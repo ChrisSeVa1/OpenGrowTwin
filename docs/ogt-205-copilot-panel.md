@@ -2,9 +2,8 @@
 
 ## Status
 
-Backend acceptance passed on the OpenGrowTwin GCP NVIDIA L4 VM on 2026-09-02.
-Graphical layout acceptance remains deferred until Kit is launched through a
-desktop or streaming session.
+Complete. Backend and graphical acceptance passed on the OpenGrowTwin GCP
+NVIDIA L4 VM on 2026-09-02.
 
 ## Delivered interaction
 
