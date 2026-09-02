@@ -20,6 +20,7 @@ if SOURCE not in sys.path:
     sys.path.insert(0, SOURCE)
 
 from opengrow.orchestration import prepare_solver_design, run_prepared_design  # noqa: E402
+from opengrow.usd.live_results import set_display_mode, update_live_results  # noqa: E402
 
 
 class OpenGrowTwinExtension(omni.ext.IExt):
@@ -31,6 +32,8 @@ class OpenGrowTwinExtension(omni.ext.IExt):
         self._debounce_task = None
         self._stage_notice = None
         self._last_result = None
+        self._baselines = {}
+        self._display_mode = "current"
         settings = carb.settings.get_settings()
         self._auto_simulate = settings.get_as_bool("/exts/opengrow.twin/auto_simulate")
         self._debounce_seconds = settings.get_as_float("/exts/opengrow.twin/debounce_seconds") or 0.25
@@ -51,6 +54,7 @@ class OpenGrowTwinExtension(omni.ext.IExt):
                 with ui.HStack(height=34, spacing=8):
                     ui.Button("Simulate", clicked_fn=self._simulate_clicked)
                     ui.Button("Cancel", clicked_fn=self._cancel_run)
+                self._comparison_button = ui.Button("Show Baseline", clicked_fn=self._toggle_comparison)
                 self._status = ui.Label("Ready", word_wrap=True, height=42)
                 self._metrics = ui.Label("No simulation result", word_wrap=True, height=100)
 
@@ -67,6 +71,13 @@ class OpenGrowTwinExtension(omni.ext.IExt):
         if self._run_task and not self._run_task.done():
             self._run_task.cancel()
         self._set_status("Cancelled")
+
+    def _toggle_comparison(self):
+        self._display_mode = "baseline" if self._display_mode == "current" else "current"
+        stage = omni.usd.get_context().get_stage()
+        if stage and self._last_result:
+            set_display_mode(stage, self._display_mode)
+        self._comparison_button.text = "Show Current" if self._display_mode == "baseline" else "Show Baseline"
 
     def _on_stage_event(self, event):
         if event.type in (
@@ -118,6 +129,9 @@ class OpenGrowTwinExtension(omni.ext.IExt):
             loop = asyncio.get_running_loop()
             result = await loop.run_in_executor(None, run_prepared_design, design)
             self._last_result = result
+            key = tuple(result["mode_shape"])
+            baseline = self._baselines.setdefault(key, result)
+            update_live_results(stage, result, baseline, self._display_mode)
             self._show_result(result, mode)
         except asyncio.CancelledError:
             self._set_status("Superseded by a newer simulation")
@@ -134,6 +148,8 @@ class OpenGrowTwinExtension(omni.ext.IExt):
             f"Mean PPFD: {metrics['mean_ppfd_umol_m2_s']:.2f} µmol m⁻² s⁻¹\n"
             f"Min / max: {metrics['min_ppfd_umol_m2_s']:.2f} / {metrics['max_ppfd_umol_m2_s']:.2f}\n"
             f"CV: {metrics['cv_ppfd']:.3f}    Uniformity: {metrics['uniformity_min_mean']:.3f}\n"
+            f"DLI: {metrics['dli_mol_m2_day']:.3f} mol m⁻² day⁻¹\n"
+            f"Far-red: {metrics['mean_far_red_umol_m2_s']:.2f} µmol m⁻² s⁻¹\n"
             f"Blocked rays: {blocked:,} / {total:,}"
         )
         print(

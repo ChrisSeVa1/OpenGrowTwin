@@ -92,6 +92,12 @@ visible status/error reporting. Add `exts/` as an extension folder and enable
 `opengrow.twin`; use `tools/kit_validate_orchestration.py` for the headless
 acceptance test.
 
+OGT-105 writes baseline and current PPFD meshes into the same open stage. Both
+carry exact `primvars:opengrow:ppfd` values and use one baseline-fixed viridis
+legend. The panel toggles baseline/current visibility and reports mean, min,
+max, CV, uniformity, DLI, far-red, and blocked rays. Run
+`tools/kit_validate_live_results.py` inside Kit for the headless acceptance.
+
 ## Headless Kit/RTX capture
 
 After generating `build/optimization/ppfd_heatmap.usda` on the GPU VM, run

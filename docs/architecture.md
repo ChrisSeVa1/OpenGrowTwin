@@ -63,6 +63,15 @@ notices are debounced before automatic preview simulation, preventing drag
 operations from queuing a run for every intermediate transform. Errors and
 completion metrics are surfaced in the same panel and in the Kit log.
 
+## In-stage results (OGT-105)
+
+Every completed run updates two meshes below the existing `Results` prim:
+`BaselinePPFDHeatmap` and `CurrentPPFDHeatmap`. Exact PPFD remains a vertex
+primvar; display colors are derived from a fixed scale established by the
+matching-resolution baseline. Visibility switching provides an immediate
+comparison without reopening or replacing the stage. Namespaced attributes
+store the full metric summary alongside the current scientific field.
+
 ## Current assumptions
 
 - Direct light only; no reflections or occlusion.
