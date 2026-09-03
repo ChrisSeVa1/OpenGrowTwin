@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import sys
 from pathlib import Path
 
@@ -22,6 +23,11 @@ for site_packages in sorted((REPOSITORY / ".venv" / "lib").glob("python*/site-pa
     if str(site_packages) not in sys.path:
         sys.path.append(str(site_packages))
 
+from opengrow.optimize.live_optimizer import (  # noqa: E402
+    apply_optimizer_proposal,
+    build_optimizer_proposal,
+    load_reference_target,
+)
 from opengrow.orchestration import prepare_solver_design, run_prepared_design  # noqa: E402
 from opengrow.usd.live_results import set_display_mode, update_live_results  # noqa: E402
 from opengrow.usd.rtx_lights import sync_rtx_lights  # noqa: E402
@@ -29,8 +35,11 @@ from opengrow.usd.stage_reader import discover_stage  # noqa: E402
 from .copilot_panel import CopilotPanel  # noqa: E402
 
 
+FIXTURE_PATH = "/World/GrowInstallation/Fixtures/Fixture_01"
+
+
 class OpenGrowTwinExtension(omni.ext.IExt):
-    """Interactive Simulate panel with debounced live-stage updates."""
+    """Interactive simulation and reviewed live-stage optimization panel."""
 
     def on_startup(self, ext_id):
         self._ext_id = ext_id
@@ -42,12 +51,15 @@ class OpenGrowTwinExtension(omni.ext.IExt):
         self._display_mode = "current"
         self._runs = {}
         self._run_counter = 0
+        self._optimizer_proposal = None
+        self._applying_optimizer = False
         self._copilot = CopilotPanel({
             "inspect_scene": self._copilot_inspect_scene,
             "get_metrics": self._copilot_get_metrics,
             "get_occlusion_summary": self._copilot_get_occlusion_summary,
             "compare_runs": self._copilot_compare_runs,
             "run_simulation": self._copilot_run_simulation,
+            "run_optimizer": self._copilot_run_optimizer,
             "set_channel_power": self._copilot_set_channel_power,
         })
         settings = carb.settings.get_settings()
@@ -61,7 +73,7 @@ class OpenGrowTwinExtension(omni.ext.IExt):
         print("[OpenGrowTwin] Interactive simulation extension ready")
 
     def _build_window(self):
-        self._window = ui.Window("OpenGrowTwin", width=470, height=650)
+        self._window = ui.Window("OpenGrowTwin", width=470, height=770)
         with self._window.frame:
             with ui.VStack(spacing=8, height=0):
                 ui.Label("Spectral Lighting Simulation", height=24)
@@ -73,6 +85,17 @@ class OpenGrowTwinExtension(omni.ext.IExt):
                 self._comparison_button = ui.Button("Show Baseline", clicked_fn=self._toggle_comparison)
                 self._status = ui.Label("Ready", word_wrap=True, height=42)
                 self._metrics = ui.Label("No simulation result", word_wrap=True, height=100)
+                ui.Separator(height=4)
+                ui.Label("Installation Optimizer", height=24)
+                with ui.HStack(height=34, spacing=8):
+                    ui.Button("Run Optimizer", clicked_fn=self._optimizer_clicked)
+                    ui.Button("Apply Proposal", clicked_fn=self._apply_optimizer_clicked)
+                    ui.Button("Reject", clicked_fn=self._reject_optimizer_clicked)
+                self._optimizer_status = ui.Label(
+                    "No optimizer proposal. Running the optimizer never changes the USD stage.",
+                    word_wrap=True,
+                    height=105,
+                )
                 self._copilot.build()
 
     def _selected_mode(self):
@@ -81,6 +104,88 @@ class OpenGrowTwinExtension(omni.ext.IExt):
 
     def _simulate_clicked(self):
         self._start_run(self._selected_mode(), "manual")
+
+    def _optimizer_clicked(self):
+        try:
+            proposal = self._build_optimizer_proposal("target_uniformity_power")
+            self._optimizer_proposal = proposal
+            self._show_optimizer_proposal(proposal)
+        except Exception as exc:
+            carb.log_error(f"[OpenGrowTwin] Optimizer proposal failed: {exc}")
+            self._optimizer_status.text = f"Optimizer error: {exc}"
+
+    def _apply_optimizer_clicked(self):
+        try:
+            proposal = self._optimizer_proposal
+            if proposal is None:
+                raise RuntimeError("Run Optimizer before applying a proposal")
+            stage = self._stage()
+            self._applying_optimizer = True
+            try:
+                result = apply_optimizer_proposal(stage, proposal)
+                sync_rtx_lights(stage)
+            finally:
+                self._applying_optimizer = False
+            self._optimizer_proposal = None
+            self._optimizer_status.text = (
+                f"Applied {result['proposal_id']} after explicit confirmation. "
+                "Running final simulation…"
+            )
+            print(
+                "[OpenGrowTwin] Optimizer proposal applied "
+                + json.dumps(result, sort_keys=True)
+            )
+            self._start_run("final", "optimizer applied")
+        except Exception as exc:
+            self._applying_optimizer = False
+            carb.log_error(f"[OpenGrowTwin] Optimizer apply failed: {exc}")
+            self._optimizer_status.text = f"Apply error: {exc}"
+
+    def _reject_optimizer_clicked(self):
+        proposal = self._optimizer_proposal
+        self._optimizer_proposal = None
+        if proposal is None:
+            self._optimizer_status.text = "No optimizer proposal to reject."
+        else:
+            self._optimizer_status.text = (
+                f"Rejected {proposal['proposal_id']}. Scene unchanged."
+            )
+            print(f"[OpenGrowTwin] Optimizer proposal rejected {proposal['proposal_id']}")
+
+    def _build_optimizer_proposal(self, objective):
+        stage = self._stage()
+        design = prepare_solver_design(stage, "final")
+        fixture = stage.GetPrimAtPath(FIXTURE_PATH)
+        translate = fixture.GetAttribute("xformOp:translate") if fixture else None
+        translation = translate.Get() if translate else None
+        if translation is None or len(translation) != 3:
+            raise RuntimeError(f"{FIXTURE_PATH}: expected authored xformOp:translate")
+        target = load_reference_target()
+        return build_optimizer_proposal(
+            design,
+            target,
+            fixture_path=FIXTURE_PATH,
+            current_fixture_height_m=float(translation[2]),
+            objective=objective,
+        )
+
+    def _show_optimizer_proposal(self, proposal):
+        powers = ", ".join(
+            f"{item['channel_id']}={item['after_total_radiant_power_w']:.3f} W"
+            for item in proposal["channel_changes"]
+        )
+        metrics = proposal["predicted_metrics"]
+        self._optimizer_status.text = (
+            f"Proposal {proposal['proposal_id']} — NO SCENE CHANGE YET\n"
+            f"Fixture height: {proposal['before_fixture_height_m']:.3f} → {proposal['after_fixture_height_m']:.3f} m\n"
+            f"Channel totals: {powers}\n"
+            f"Predicted mean PPFD: {metrics['mean_ppfd_umol_m2_s']:.2f}; CV: {metrics['cv_ppfd']:.3f}\n"
+            "Review these exact values, then click Apply Proposal or Reject."
+        )
+        print(
+            "[OpenGrowTwin] Optimizer proposal "
+            + json.dumps(proposal, sort_keys=True)
+        )
 
     def _cancel_run(self):
         if self._debounce_task and not self._debounce_task.done():
@@ -101,6 +206,7 @@ class OpenGrowTwinExtension(omni.ext.IExt):
             int(omni.usd.StageEventType.OPENED),
             int(omni.usd.StageEventType.CLOSED),
         ):
+            self._optimizer_proposal = None
             self._attach_stage_notice()
 
     def _attach_stage_notice(self):
@@ -112,15 +218,20 @@ class OpenGrowTwinExtension(omni.ext.IExt):
             self._stage_notice = Tf.Notice.Register(Usd.Notice.ObjectsChanged, self._on_objects_changed, stage)
 
     def _on_objects_changed(self, notice, sender):
-        if not self._auto_simulate:
-            return
         changed = list(notice.GetResyncedPaths()) + list(notice.GetChangedInfoOnlyPaths())
-        if any(
+        relevant = any(
             "/World/GrowInstallation" in str(path)
             and "/Results" not in str(path)
             and "/RTXLight" not in str(path)
             for path in changed
-        ):
+        )
+        if relevant and self._optimizer_proposal is not None and not self._applying_optimizer:
+            self._optimizer_proposal = None
+            if self._optimizer_status:
+                self._optimizer_status.text = (
+                    "Optimizer proposal invalidated because the live scene changed. Run Optimizer again."
+                )
+        if self._auto_simulate and relevant and not self._applying_optimizer:
             self._schedule_debounced_preview()
 
     def _schedule_debounced_preview(self):
@@ -214,6 +325,9 @@ class OpenGrowTwinExtension(omni.ext.IExt):
             "entity_counts": {name: len(records) for name, records in entities.items()},
             "enabled_channel_power_w": channel_power,
             "recorded_run_ids": list(self._runs),
+            "pending_optimizer_proposal_id": (
+                self._optimizer_proposal["proposal_id"] if self._optimizer_proposal else None
+            ),
         }
 
     def _copilot_get_metrics(self, run_id):
@@ -271,6 +385,12 @@ class OpenGrowTwinExtension(omni.ext.IExt):
             "total_ray_count": result["total_ray_count"],
         }
 
+    def _copilot_run_optimizer(self, objective):
+        proposal = self._build_optimizer_proposal(objective)
+        self._optimizer_proposal = proposal
+        self._show_optimizer_proposal(proposal)
+        return proposal
+
     def _copilot_set_channel_power(self, fixture_id, channel_id, radiant_power_w):
         stage = self._stage()
         discovered = discover_stage(stage)
@@ -317,5 +437,6 @@ class OpenGrowTwinExtension(omni.ext.IExt):
             self._stage_notice.Revoke()
         self._stage_notice = None
         self._stage_subscription = None
+        self._optimizer_proposal = None
         self._window = None
         print("[OpenGrowTwin] Interactive simulation extension shutdown")
