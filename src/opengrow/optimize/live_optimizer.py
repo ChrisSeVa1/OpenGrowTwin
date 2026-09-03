@@ -2,17 +2,14 @@
 
 from __future__ import annotations
 
-from copy import deepcopy
 import hashlib
 import json
 from pathlib import Path
 
-import yaml
-
 from .optimizer import optimize_design
 
 
-REFERENCE_TARGET_PATH = Path(__file__).resolve().parents[3] / "data" / "targets" / "phalaenopsis_reference.yaml"
+REFERENCE_TARGET_PATH = Path(__file__).resolve().parents[3] / "data" / "targets" / "phalaenopsis_reference.json"
 
 
 class LiveOptimizerError(ValueError):
@@ -20,11 +17,24 @@ class LiveOptimizerError(ValueError):
 
 
 def load_reference_target(path: Path | None = None) -> dict:
-    """Load the curated MVP optimization target used by the existing CLI optimizer."""
+    """Load the curated MVP optimization target without requiring PyYAML in Kit."""
     target_path = Path(path) if path is not None else REFERENCE_TARGET_PATH
     try:
-        target = yaml.safe_load(target_path.read_text(encoding="utf-8"))
-    except (OSError, yaml.YAMLError) as exc:
+        if target_path.suffix.lower() == ".json":
+            target = json.loads(target_path.read_text(encoding="utf-8"))
+        else:
+            try:
+                import yaml  # type: ignore
+            except ImportError as exc:
+                raise LiveOptimizerError(
+                    "YAML target loading requires PyYAML; use the checked-in JSON target in Kit"
+                ) from exc
+            target = yaml.safe_load(target_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise LiveOptimizerError(f"cannot load optimizer target {target_path}") from exc
+    except Exception as exc:
+        if isinstance(exc, LiveOptimizerError):
+            raise
         raise LiveOptimizerError(f"cannot load optimizer target {target_path}") from exc
     if not isinstance(target, dict) or "target" not in target or "photon_fraction" not in target:
         raise LiveOptimizerError("optimizer target is malformed")
