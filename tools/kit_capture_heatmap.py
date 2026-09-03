@@ -3,13 +3,20 @@
 Run with the generated Kit launcher via --exec and enable:
 omni.kit.capture.viewport, omni.graph, omni.graph.nodes, and
 omni.graph.examples.cpp.
+
+The repository root is discovered from this file by default. Set
+OPENGROW_ROOT only when the repository is intentionally mounted elsewhere.
+A successful run writes a machine-neutral JSON evidence record to
+build/ogt-305/l4-smoke-evidence.json.
 """
 
 from __future__ import annotations
 
 import asyncio
 import glob
+import json
 import os
+from pathlib import Path
 import traceback
 
 import omni.kit.app
@@ -22,12 +29,11 @@ from omni.kit.capture.viewport import (
 from pxr import Gf, UsdGeom, UsdLux, UsdRender
 
 
-PROJECT_ROOT = os.environ.get(
-    "OPENGROW_ROOT",
-    "/home/chris_sevilla_v_de/projects/OpenGrowTwin",
-)
-STAGE_PATH = os.path.join(PROJECT_ROOT, "build", "optimization", "ppfd_heatmap.usda")
-OUTPUT_DIR = os.path.join(PROJECT_ROOT, "build", "captures")
+DEFAULT_PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = Path(os.environ.get("OPENGROW_ROOT", DEFAULT_PROJECT_ROOT)).resolve()
+STAGE_PATH = PROJECT_ROOT / "build" / "optimization" / "ppfd_heatmap.usda"
+OUTPUT_DIR = PROJECT_ROOT / "build" / "captures"
+EVIDENCE_PATH = PROJECT_ROOT / "build" / "ogt-305" / "l4-smoke-evidence.json"
 OUTPUT_STEM = "ppfd_heatmap_rtx"
 MESH_PATH = "/OpenGrowTwinResults/PPFDHeatmap"
 CAMERA_PATH = "/OpenGrowTwinResults/CaptureCamera"
@@ -37,19 +43,27 @@ RENDER_SETTINGS_PATH = "/Render/OpenGrowTwinSettings"
 RENDER_VAR_PATH = "/Render/Vars/LdrColor"
 
 
+def _repo_relative(path: Path) -> str:
+    try:
+        return path.resolve().relative_to(PROJECT_ROOT).as_posix()
+    except ValueError:
+        return path.name
+
+
 async def capture() -> None:
     app = omni.kit.app.get_app()
     failed = False
     try:
-        os.makedirs(OUTPUT_DIR, exist_ok=True)
-        if not os.path.isfile(STAGE_PATH):
+        OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+        EVIDENCE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        if not STAGE_PATH.is_file():
             raise FileNotFoundError(
                 f"Missing {STAGE_PATH}; run 'python -m opengrow optimize ...' first"
             )
 
-        print(f"[OpenGrowTwin] Opening stage: {STAGE_PATH}", flush=True)
+        print(f"[OpenGrowTwin] Opening stage: {_repo_relative(STAGE_PATH)}", flush=True)
         context = omni.usd.get_context()
-        opened = context.open_stage(STAGE_PATH)
+        opened = context.open_stage(str(STAGE_PATH))
         if opened is False:
             raise RuntimeError("Kit reported that the stage could not be opened")
         for _ in range(20):
@@ -67,9 +81,14 @@ async def capture() -> None:
             raise RuntimeError(f"Unexpected PPFD count: {len(ppfd) if ppfd else 0}")
         if not colors or len(colors) != 1025:
             raise RuntimeError(f"Unexpected color count: {len(colors) if colors else 0}")
+
+        ppfd_values = [float(value) for value in ppfd]
+        ppfd_mean = sum(ppfd_values) / len(ppfd_values)
+        ppfd_min = min(ppfd_values)
+        ppfd_max = max(ppfd_values)
         print(
             f"[OpenGrowTwin] Stage valid; PPFD={len(ppfd)}, colors={len(colors)}, "
-            f"range=({min(ppfd):.3f}, {max(ppfd):.3f})",
+            f"range=({ppfd_min:.3f}, {ppfd_max:.3f})",
             flush=True,
         )
 
@@ -127,7 +146,7 @@ async def capture() -> None:
         capture_instance = CaptureExtension.get_instance()
         options = CaptureOptions()
         options.camera = CAMERA_PATH
-        options.output_folder = OUTPUT_DIR
+        options.output_folder = str(OUTPUT_DIR)
         options.file_name = OUTPUT_STEM
         # NVIDIA's render-product capture path writes EXR. PNG is supported by
         # viewport capture, but can finish with an empty output list when used
@@ -148,19 +167,53 @@ async def capture() -> None:
         outputs = capture_instance.get_outputs()
         print(f"[OpenGrowTwin] Capture outputs: {outputs}", flush=True)
         candidates = list(outputs)
-        candidates.extend(glob.glob(os.path.join(OUTPUT_DIR, f"{OUTPUT_STEM}*.exr")))
+        candidates.extend(glob.glob(str(OUTPUT_DIR / f"{OUTPUT_STEM}*.exr")))
         existing = [
-            path for path in dict.fromkeys(candidates)
+            Path(path)
+            for path in dict.fromkeys(candidates)
             if isinstance(path, str) and os.path.isfile(path) and os.path.getsize(path) > 0
         ]
         if not existing:
             raise RuntimeError("Render-product capture produced no non-empty image")
+
+        capture_records = []
         for path in existing:
+            size_bytes = path.stat().st_size
+            capture_records.append({
+                "path": _repo_relative(path),
+                "size_bytes": size_bytes,
+            })
             print(
-                f"[OpenGrowTwin] RTX CAPTURE PASSED: {path} "
-                f"({os.path.getsize(path)} bytes)",
+                f"[OpenGrowTwin] RTX CAPTURE PASSED: {_repo_relative(path)} "
+                f"({size_bytes} bytes)",
                 flush=True,
             )
+
+        evidence = {
+            "schema_version": "1.0",
+            "task": "OGT-305",
+            "validation": "L4 Kit RTX integration smoke test",
+            "passed": True,
+            "stage": _repo_relative(STAGE_PATH),
+            "mesh_path": MESH_PATH,
+            "vertex_count": len(ppfd_values),
+            "color_count": len(colors),
+            "ppfd": {
+                "mean_umol_m2_s": ppfd_mean,
+                "min_umol_m2_s": ppfd_min,
+                "max_umol_m2_s": ppfd_max,
+            },
+            "render": {
+                "preset": "PATH_TRACE",
+                "resolution": [1280, 720],
+                "captures": capture_records,
+            },
+        }
+        EVIDENCE_PATH.write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")
+        print(
+            f"[OpenGrowTwin] Evidence written: {_repo_relative(EVIDENCE_PATH)}",
+            flush=True,
+        )
     except Exception:
         failed = True
         print("[OpenGrowTwin] RTX CAPTURE FAILED", flush=True)
