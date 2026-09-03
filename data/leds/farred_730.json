@@ -1,1 +1,18 @@
-{"id":"mvp_farred_730","wavelength_nm":730,"spectrum_representation":"monochromatic_approximation","reporting_band":"far_red_700_800","included_in_ppfd":false,"provenance_status":"placeholder_pending_manufacturer_dataset"}
+{
+  "schema_version": "1.0",
+  "id": "mvp_farred_730",
+  "manufacturer": "ams OSRAM",
+  "product_family": "OSCONIQ P 3737",
+  "application": "horticulture",
+  "channel": "far_red",
+  "wavelength_nm": 730,
+  "manufacturer_wavelength_label": "Far Red (730 nm)",
+  "spectrum_representation": "monochromatic_approximation",
+  "reporting_band": "far_red_700_800",
+  "included_in_ppfd": false,
+  "manufacturer_data": {"scope": "product_family", "spectral_identity_only": true},
+  "simulation_assumptions": {"wavelength_model": "single_nominal_wavelength", "radiant_power_source": "scene_or_simulation_input", "manufacturer_electrical_power_used_as_radiant_power": false},
+  "provenance": {"manufacturer": "ams OSRAM", "source_type": "manufacturer_product_family_page", "source_url": "https://ams-osram.com/products/product-families/osconiq-p-3737-2w", "retrieved_utc_date": "2026-09-03", "supported_claim": "OSCONIQ P 3737 is offered for horticulture with Far Red at nominally 730 nm."},
+  "provenance_status": "manufacturer_family_verified",
+  "limitations": ["This preset uses a monochromatic approximation at the nominal wavelength.", "It does not reproduce the complete manufacturer spectral power distribution.", "Far-red is intentionally reported separately and is not included in OpenGrowTwin PPFD.", "Simulation radiant power is not inferred from LED electrical power.", "This preset identifies a commercially realistic spectral channel and is not a biological optimum recommendation."]
+}
