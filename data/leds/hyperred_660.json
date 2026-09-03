@@ -1,1 +1,18 @@
-{"id":"mvp_hyperred_660","wavelength_nm":660,"spectrum_representation":"monochromatic_approximation","reporting_band":"red_600_700","provenance_status":"placeholder_pending_manufacturer_dataset"}
+{
+  "schema_version": "1.0",
+  "id": "mvp_hyperred_660",
+  "manufacturer": "ams OSRAM",
+  "product_family": "OSCONIQ P 3737",
+  "application": "horticulture",
+  "channel": "hyper_red",
+  "wavelength_nm": 660,
+  "manufacturer_wavelength_label": "Hyper Red (660 nm)",
+  "spectrum_representation": "monochromatic_approximation",
+  "reporting_band": "red_600_700",
+  "included_in_ppfd": true,
+  "manufacturer_data": {"scope": "product_family", "spectral_identity_only": true},
+  "simulation_assumptions": {"wavelength_model": "single_nominal_wavelength", "radiant_power_source": "scene_or_simulation_input", "manufacturer_electrical_power_used_as_radiant_power": false},
+  "provenance": {"manufacturer": "ams OSRAM", "source_type": "manufacturer_product_family_page", "source_url": "https://ams-osram.com/products/product-families/osconiq-p-3737-2w", "retrieved_utc_date": "2026-09-03", "supported_claim": "OSCONIQ P 3737 is offered for horticulture with Hyper Red at nominally 660 nm."},
+  "provenance_status": "manufacturer_family_verified",
+  "limitations": ["This preset uses a monochromatic approximation at the nominal wavelength.", "It does not reproduce the complete manufacturer spectral power distribution.", "Simulation radiant power is not inferred from LED electrical power.", "This preset identifies a commercially realistic spectral channel and is not a biological optimum recommendation."]
+}
