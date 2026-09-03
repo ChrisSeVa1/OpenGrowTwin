@@ -12,7 +12,6 @@ import omni.ext
 import omni.kit.app
 import omni.ui as ui
 import omni.usd
-import yaml
 from pxr import Tf, Usd
 
 
@@ -25,15 +24,18 @@ for site_packages in sorted((REPOSITORY / ".venv" / "lib").glob("python*/site-pa
         sys.path.append(str(site_packages))
 
 from opengrow.optimize.live_optimizer import (  # noqa: E402
-    LiveOptimizerProposal,
-    apply_live_optimizer_proposal,
-    propose_live_optimizer,
+    apply_optimizer_proposal,
+    build_optimizer_proposal,
+    load_reference_target,
 )
 from opengrow.orchestration import prepare_solver_design, run_prepared_design  # noqa: E402
 from opengrow.usd.live_results import set_display_mode, update_live_results  # noqa: E402
 from opengrow.usd.rtx_lights import sync_rtx_lights  # noqa: E402
 from opengrow.usd.stage_reader import discover_stage  # noqa: E402
 from .copilot_panel import CopilotPanel  # noqa: E402
+
+
+FIXTURE_PATH = "/World/GrowInstallation/Fixtures/Fixture_01"
 
 
 class OpenGrowTwinExtension(omni.ext.IExt):
@@ -49,7 +51,8 @@ class OpenGrowTwinExtension(omni.ext.IExt):
         self._display_mode = "current"
         self._runs = {}
         self._run_counter = 0
-        self._optimizer_proposal: LiveOptimizerProposal | None = None
+        self._optimizer_proposal = None
+        self._applying_optimizer = False
         self._copilot = CopilotPanel({
             "inspect_scene": self._copilot_inspect_scene,
             "get_metrics": self._copilot_get_metrics,
@@ -104,7 +107,7 @@ class OpenGrowTwinExtension(omni.ext.IExt):
 
     def _optimizer_clicked(self):
         try:
-            proposal = self._build_optimizer_proposal()
+            proposal = self._build_optimizer_proposal("target_uniformity_power")
             self._optimizer_proposal = proposal
             self._show_optimizer_proposal(proposal)
         except Exception as exc:
@@ -117,15 +120,24 @@ class OpenGrowTwinExtension(omni.ext.IExt):
             if proposal is None:
                 raise RuntimeError("Run Optimizer before applying a proposal")
             stage = self._stage()
-            result = apply_live_optimizer_proposal(stage, proposal, confirmed=True)
-            sync_rtx_lights(stage)
+            self._applying_optimizer = True
+            try:
+                result = apply_optimizer_proposal(stage, proposal)
+                sync_rtx_lights(stage)
+            finally:
+                self._applying_optimizer = False
             self._optimizer_proposal = None
             self._optimizer_status.text = (
                 f"Applied {result['proposal_id']} after explicit confirmation. "
                 "Running final simulation…"
             )
+            print(
+                "[OpenGrowTwin] Optimizer proposal applied "
+                + json.dumps(result, sort_keys=True)
+            )
             self._start_run("final", "optimizer applied")
         except Exception as exc:
+            self._applying_optimizer = False
             carb.log_error(f"[OpenGrowTwin] Optimizer apply failed: {exc}")
             self._optimizer_status.text = f"Apply error: {exc}"
 
@@ -136,43 +148,43 @@ class OpenGrowTwinExtension(omni.ext.IExt):
             self._optimizer_status.text = "No optimizer proposal to reject."
         else:
             self._optimizer_status.text = (
-                f"Rejected {proposal.proposal_id}. Scene unchanged."
+                f"Rejected {proposal['proposal_id']}. Scene unchanged."
             )
+            print(f"[OpenGrowTwin] Optimizer proposal rejected {proposal['proposal_id']}")
 
-    def _target_record(self):
-        path = REPOSITORY / "data" / "targets" / "phalaenopsis_reference.yaml"
-        target = yaml.safe_load(path.read_text(encoding="utf-8"))
-        if not isinstance(target, dict):
-            raise RuntimeError("approved optimizer target must be a mapping")
-        return target
-
-    def _build_optimizer_proposal(self):
+    def _build_optimizer_proposal(self, objective):
         stage = self._stage()
-        target = self._target_record()
         design = prepare_solver_design(stage, "final")
-        return propose_live_optimizer(
+        fixture = stage.GetPrimAtPath(FIXTURE_PATH)
+        translate = fixture.GetAttribute("xformOp:translate") if fixture else None
+        translation = translate.Get() if translate else None
+        if translation is None or len(translation) != 3:
+            raise RuntimeError(f"{FIXTURE_PATH}: expected authored xformOp:translate")
+        target = load_reference_target()
+        return build_optimizer_proposal(
             design,
             target,
-            fixture_path="/World/GrowInstallation/Fixtures/Fixture_01",
+            fixture_path=FIXTURE_PATH,
+            current_fixture_height_m=float(translation[2]),
+            objective=objective,
         )
 
     def _show_optimizer_proposal(self, proposal):
         powers = ", ".join(
             f"{item['channel_id']}={item['after_total_radiant_power_w']:.3f} W"
-            for item in proposal.channel_changes
+            for item in proposal["channel_changes"]
         )
-        mean_ppfd = proposal.predicted_metrics["mean_ppfd_umol_m2_s"]
-        cv = proposal.predicted_metrics["cv_ppfd"]
+        metrics = proposal["predicted_metrics"]
         self._optimizer_status.text = (
-            f"Proposal {proposal.proposal_id} — NO SCENE CHANGE YET\n"
-            f"Fixture height: {proposal.before_fixture_height_m:.3f} → {proposal.after_fixture_height_m:.3f} m\n"
+            f"Proposal {proposal['proposal_id']} — NO SCENE CHANGE YET\n"
+            f"Fixture height: {proposal['before_fixture_height_m']:.3f} → {proposal['after_fixture_height_m']:.3f} m\n"
             f"Channel totals: {powers}\n"
-            f"Predicted mean PPFD: {mean_ppfd:.2f}; CV: {cv:.3f}\n"
+            f"Predicted mean PPFD: {metrics['mean_ppfd_umol_m2_s']:.2f}; CV: {metrics['cv_ppfd']:.3f}\n"
             "Review these exact values, then click Apply Proposal or Reject."
         )
         print(
             "[OpenGrowTwin] Optimizer proposal "
-            + json.dumps(proposal.to_dict(), sort_keys=True)
+            + json.dumps(proposal, sort_keys=True)
         )
 
     def _cancel_run(self):
@@ -213,13 +225,13 @@ class OpenGrowTwinExtension(omni.ext.IExt):
             and "/RTXLight" not in str(path)
             for path in changed
         )
-        if relevant and self._optimizer_proposal is not None:
+        if relevant and self._optimizer_proposal is not None and not self._applying_optimizer:
             self._optimizer_proposal = None
             if self._optimizer_status:
                 self._optimizer_status.text = (
                     "Optimizer proposal invalidated because the live scene changed. Run Optimizer again."
                 )
-        if self._auto_simulate and relevant:
+        if self._auto_simulate and relevant and not self._applying_optimizer:
             self._schedule_debounced_preview()
 
     def _schedule_debounced_preview(self):
@@ -314,7 +326,7 @@ class OpenGrowTwinExtension(omni.ext.IExt):
             "enabled_channel_power_w": channel_power,
             "recorded_run_ids": list(self._runs),
             "pending_optimizer_proposal_id": (
-                self._optimizer_proposal.proposal_id if self._optimizer_proposal else None
+                self._optimizer_proposal["proposal_id"] if self._optimizer_proposal else None
             ),
         }
 
@@ -374,12 +386,10 @@ class OpenGrowTwinExtension(omni.ext.IExt):
         }
 
     def _copilot_run_optimizer(self, objective):
-        if objective != "target_uniformity_power":
-            raise ValueError(f"unsupported optimizer objective {objective!r}")
-        proposal = self._build_optimizer_proposal()
+        proposal = self._build_optimizer_proposal(objective)
         self._optimizer_proposal = proposal
         self._show_optimizer_proposal(proposal)
-        return proposal.to_dict()
+        return proposal
 
     def _copilot_set_channel_power(self, fixture_id, channel_id, radiant_power_w):
         stage = self._stage()
