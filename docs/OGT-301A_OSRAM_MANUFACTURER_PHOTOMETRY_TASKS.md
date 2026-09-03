@@ -1,6 +1,6 @@
 # OGT-301A — OSRAM Manufacturer Photometry Integration
 
-Status: **Step 1 complete; Step 2 next**
+Status: **Steps 1–3 complete; Step 4 next**
 
 This task extends the existing OpenGrowTwin LED/scientific-source work with manufacturer-backed optical data. It does **not** reopen or redefine the acceptance criteria of the already-completed OGT-301 milestone.
 
@@ -12,47 +12,53 @@ Upgrade the selected ams OSRAM horticultural LED presets from a generalized Lamb
 
 For OGT-301A, use the current **OSRAM OSCONIQ™ P 3737 (2W) Batwing** family for all three channels. This keeps package geometry and angular-model handling consistent and gives OpenGrowTwin a deliberately non-Lambertian manufacturer profile to validate.
 
-| OpenGrowTwin channel | Nominal spectral role | ams OSRAM part | Full production ordering variant | Manufacturer-listed photon/radiant data | Beam |
-| --- | --- | --- | --- | --- | --- |
-| Blue | Deep Blue, ~450 nm | `GD PUBRA1.15` | `GD PUBRA1.15-T1T4-24-1-D` / Q65115A3136 | ΦP = 5.10…5.90 µmol/s @ 700 mA | 140° batwing |
-| Red | Hyper Red, ~660 nm | `GH PUBRA1.25` | `GH PUBRA1.25-T4U1-1-1-D` / Q65115A3134 | ΦP = 5.70…6.30 µmol/s @ 700 mA; typical ΦE ≈ 1050 mW | 140° batwing |
-| Far-red | Far Red, ~730 nm | `GF PUBRA1.25` | `GF PUBRA1.25-T1T3-1-1-D` / Q65115A3135 | ΦP = 5.10…5.70 µmol/s @ 700 mA; typical ΦE ≈ 862 mW | 140° batwing |
+| OpenGrowTwin channel | Nominal spectral role | ams OSRAM part | Manufacturer rayfile revision | Validated radiant flux in package | Angular grid |
+| --- | --- | --- | --- | ---: | --- |
+| Blue | Deep Blue, ~450 nm | `GD PUBRA1.15` | 2025-05-29 | **1.448 W** | 91 × 73 IES |
+| Red | Hyper Red, ~660 nm | `GH PUBRA1.25` | 2025-05-26 | **1.050 W** | 91 × 73 IES |
+| Far-red | Far Red, ~730 nm | `GF PUBRA1.25` | 2025-06-03 | **0.869 W** | 91 × 73 IES |
 
 ### Selection note
 
-The earlier OSLON™ Square candidates remain valid reference/fallback devices, including `GD CSSRM3.14` deep blue and `GH CSSRM6.24` hyper red. OGT-301A intentionally standardizes the manufacturer-photometry demonstration on the newer P 3737 Batwing family because matched blue/red/far-red devices are available in the same package family and expose a strongly non-Lambertian angular distribution. The already-uploaded `GD PUBRA1.15` IES/EULUMDAT package therefore becomes the first reference asset.
+The earlier OSLON™ Square candidates remain valid reference/fallback devices, including `GD CSSRM3.14` deep blue and `GH CSSRM6.24` hyper red. OGT-301A intentionally standardizes the manufacturer-photometry demonstration on the P 3737 Batwing family because matched blue/red/far-red devices are available in the same package family and expose a strongly non-Lambertian angular distribution.
+
+Detailed numerical validation is recorded in `docs/OGT-301A_OSRAM_PHOTOMETRY_VALIDATION.md`.
 
 ## Task sequence
 
 - [x] **1. Lock the exact three OSRAM part numbers**
   - Confirmed deep-blue (~450 nm), hyper-red (~660 nm), and far-red (~730 nm) devices.
   - Locked exact manufacturer part numbers and OpenGrowTwin channel mapping above.
-  - First reference asset: `GD PUBRA1.15` manufacturer IES/EULUMDAT package dated 2025-05-29.
 
-- [ ] **2. Acquire IES + EULUMDAT packages for each exact part**
-  - Download the official ams OSRAM IES package for each LED.
-  - Download the matching EULUMDAT package as an independent photometric cross-check.
-  - Preserve original filenames and source dates.
-  - Blue `GD PUBRA1.15`: IES + EULUMDAT already acquired for the working session; copy into the repository only if redistribution/licensing is appropriate, otherwise store a provenance manifest and retrieval instructions.
-  - Red `GH PUBRA1.25`: acquire IES + EULUMDAT.
-  - Far-red `GF PUBRA1.25`: acquire IES + EULUMDAT.
+- [x] **2. Acquire IES + EULUMDAT packages for each exact part**
+  - Blue `GD PUBRA1.15`: IES + EULUMDAT acquired, revision 2025-05-29.
+  - Red `GH PUBRA1.25`: IES + EULUMDAT acquired, revision 2025-05-26.
+  - Far-red `GF PUBRA1.25`: IES + EULUMDAT acquired, revision 2025-06-03.
+  - Original manufacturer filenames and source dates preserved.
+  - Do not commit the raw manufacturer archives unless redistribution rights are explicitly confirmed; prefer provenance records/retrieval instructions.
 
-- [ ] **3. Verify spectral/radiometric provenance**
-  - Record manufacturer radiant-flux / photon-flux / wavelength data used by the scientific model.
-  - Classify spectrum provenance explicitly, e.g. `measured_csv`, `digitized_datasheet`, `parameterized_gaussian`, or `monochromatic_approximation`.
-  - Do not interpret LM-63 values as ordinary candela for photon calculations until the OSRAM encoding is validated.
-  - Document known limitations and assumptions.
+- [x] **3. Verify spectral/radiometric provenance**
+  - Package-specific manufacturer radiant flux recorded: blue 1.448 W, hyper-red 1.050 W, far-red 0.869 W.
+  - All IES profiles use 91 vertical angles (0–180° at 2°) and 73 horizontal angles (0–360° at 5°).
+  - Numerical solid-angle integration of the IES fields reproduces manufacturer radiant flux to better than 0.05% for all three devices.
+  - EULUMDAT and IES angular distributions match to rounding precision after package scaling.
+  - The six IES/EULUMDAT archives do not themselves supply machine-readable SPD data; spectral provenance therefore remains separate and must not be labeled measured unless a separate manufacturer spectrum file is acquired.
+  - Manufacturer documentation states that bundled CAD is mechanical and is not valid as optical ray-tracing geometry.
+  - See `docs/OGT-301A_OSRAM_PHOTOMETRY_VALIDATION.md` for the validation tables and equations.
 
 - [ ] **4. Implement a generic IES parser**
   - Parse LM-63 metadata, vertical angles, horizontal angles, and intensity samples.
-  - Expose a normalized angular field `I(theta, phi)` suitable for deterministic interpolation.
+  - Expose a normalized angular field `I(theta, phi)` / `p(theta, phi)` suitable for deterministic interpolation.
+  - Compute and retain the raw solid-angle integral as a validation metric.
+  - Add bilinear interpolation with periodic azimuth handling.
   - Add parser validation for malformed/unsupported profiles.
   - Preserve manufacturer metadata and source provenance.
+  - Prefer synthetic/open regression fixtures; do not require redistribution of proprietary manufacturer archives.
 
 - [ ] **5. Add `manufacturer_ies` angular model to the deterministic solver**
   - Use interpolated `I(theta, phi)` instead of the current generalized Lambertian model when a validated manufacturer IES profile is available.
   - Keep `generalized_lambertian` as a documented fallback.
-  - Keep spectral/radiometric normalization separate from angular-shape data.
+  - Normalize angular shape independently and apply authoritative `radiant_flux_w` from LED metadata.
   - Maintain inverse-square attenuation, receiver incidence angle, and OpenUSD geometry visibility.
 
 - [ ] **6. Attach the same manufacturer IES profile to the RTX/USD light**
@@ -76,7 +82,7 @@ The earlier OSLON™ Square candidates remain valid reference/fallback devices, 
 
 - [ ] **9. Run and extend regression coverage**
   - Run the full existing OpenGrowTwin regression suite.
-  - Add tests for IES parsing, interpolation, fallback behavior, provenance, RTX/scientific synchronization, and deterministic A/B results.
+  - Add tests for IES parsing, interpolation, normalization, fallback behavior, provenance, RTX/scientific synchronization, and deterministic A/B results.
   - Ensure existing OGT-101…206 behavior remains unchanged unless intentionally extended.
 
 - [ ] **10. Capture reproducible evidence for README/demo**
@@ -104,4 +110,4 @@ The intended model remains:
 
 `manufacturer spectral/radiometric source + I(theta, phi) + 1/r^2 + receiver incidence + OpenUSD visibility → PPFD`
 
-The manufacturer IES profile supplies the **angular shape**. Spectral/radiometric data supplies the energy/photon normalization. These must remain separate to avoid treating standard photometric file values as direct photon-domain truth without validation.
+For implementation, normalize the manufacturer angular field to a unit-solid-angle distribution `p(theta, phi)` and then apply the authoritative manufacturer `radiant_flux_w`. Spectral provenance remains independent of angular provenance.
