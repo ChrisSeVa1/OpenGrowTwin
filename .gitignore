@@ -8,3 +8,7 @@ dist/
 .idea/
 .vscode/
 *.log
+
+# User-supplied manufacturer optical assets. Keep third-party rayfiles/SPDs local
+# unless redistribution rights are explicitly confirmed.
+sources/osram/
