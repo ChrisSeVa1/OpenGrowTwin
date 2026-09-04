@@ -11,15 +11,39 @@ from .photons import irradiance_to_photon_flux
 
 
 def _trapezoid(values, coordinates, axis=-1):
+    """Use NumPy's non-deprecated trapezoidal integrator when available."""
     fn = getattr(np, "trapezoid", np.trapz)
     return fn(values, coordinates, axis=axis)
+
+
+def _bounded_samples(wavelengths_nm, values, minimum_nm=None, maximum_nm=None):
+    """Return samples clipped to a wavelength interval with interpolated boundaries.
+
+    The returned grid includes requested band boundaries that fall inside the
+    source support even when those boundaries are not original samples. This
+    avoids dropping partial trapezoids at band edges.
+    """
+    wavelengths = np.asarray(wavelengths_nm, dtype=float)
+    values = np.asarray(values, dtype=float)
+
+    lower = wavelengths[0] if minimum_nm is None else max(float(minimum_nm), wavelengths[0])
+    upper = wavelengths[-1] if maximum_nm is None else min(float(maximum_nm), wavelengths[-1])
+    if upper <= lower:
+        return np.asarray([], dtype=float), np.asarray([], dtype=float)
+
+    interior = (wavelengths > lower) & (wavelengths < upper)
+    clipped_wavelengths = np.concatenate(
+        ([lower], wavelengths[interior], [upper])
+    )
+    clipped_values = np.interp(clipped_wavelengths, wavelengths, values)
+    return clipped_wavelengths, clipped_values
 
 
 @dataclass(frozen=True)
 class TabulatedSpectrum:
     """Relative spectral distribution tabulated against wavelength.
 
-    ``relative_power`` is deliberately unitless.  Use :meth:`normalized_density`
+    ``relative_power`` is deliberately unitless. Use :meth:`normalized_density`
     to obtain a spectral density whose wavelength integral is one, then multiply
     by an authoritative total radiant flux.
     """
@@ -66,25 +90,30 @@ class TabulatedSpectrum:
 
     def photon_flux_per_watt_umol_s(self, minimum_nm=None, maximum_nm=None) -> float:
         """Integrate emitted photon flux for one watt of total radiant flux."""
-        mask = np.ones_like(self.wavelengths_nm, dtype=bool)
-        if minimum_nm is not None:
-            mask &= self.wavelengths_nm >= float(minimum_nm)
-        if maximum_nm is not None:
-            mask &= self.wavelengths_nm <= float(maximum_nm)
-        if np.count_nonzero(mask) < 2:
+        density = self.normalized_density()
+        wavelengths, spectral_w_per_nm = _bounded_samples(
+            self.wavelengths_nm,
+            density,
+            minimum_nm=minimum_nm,
+            maximum_nm=maximum_nm,
+        )
+        if len(wavelengths) < 2:
             return 0.0
-        wavelengths = self.wavelengths_nm[mask]
-        spectral_w_per_nm = self.normalized_density()[mask]
         spectral_photons = irradiance_to_photon_flux(spectral_w_per_nm, wavelengths)
         return float(_trapezoid(spectral_photons, wavelengths))
 
     def fraction_in_band(self, minimum_nm: float, maximum_nm: float) -> float:
         """Return fraction of radiant flux falling inside a wavelength interval."""
-        mask = (self.wavelengths_nm >= minimum_nm) & (self.wavelengths_nm <= maximum_nm)
-        if np.count_nonzero(mask) < 2:
-            return 0.0
         density = self.normalized_density()
-        return float(_trapezoid(density[mask], self.wavelengths_nm[mask]))
+        wavelengths, bounded_density = _bounded_samples(
+            self.wavelengths_nm,
+            density,
+            minimum_nm=minimum_nm,
+            maximum_nm=maximum_nm,
+        )
+        if len(wavelengths) < 2:
+            return 0.0
+        return float(_trapezoid(bounded_density, wavelengths))
 
 
 def parse_spectrum_text(
