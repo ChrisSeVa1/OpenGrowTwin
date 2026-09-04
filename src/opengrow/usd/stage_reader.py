@@ -50,6 +50,14 @@ def discover_stage(stage) -> dict:
             translation = transform.ExtractTranslation()
             local_direction = _required(prim, "opengrow:emissionDirection")
             direction = transform.TransformDir(local_direction).GetNormalized()
+            local_axes = [
+                transform.TransformDir(Gf.Vec3d(1.0, 0.0, 0.0)).GetNormalized(),
+                transform.TransformDir(Gf.Vec3d(0.0, 1.0, 0.0)).GetNormalized(),
+                transform.TransformDir(Gf.Vec3d(0.0, 0.0, 1.0)).GetNormalized(),
+            ]
+            orientation_matrix = [
+                [float(local_axes[column][row]) for column in range(3)] for row in range(3)
+            ]
             record.update({
                 "channel": str(_required(prim, "opengrow:channel")),
                 "wavelength_nm": float(_required(prim, "opengrow:wavelengthNm")),
@@ -58,6 +66,7 @@ def discover_stage(stage) -> dict:
                 "enabled": bool(_required(prim, "opengrow:enabled")),
                 "position_m": [float(value) for value in translation],
                 "direction": [float(value) for value in direction],
+                "orientation_matrix": orientation_matrix,
             })
         elif role == "sensorPlane":
             sampling_point = _required(prim, "opengrow:samplingPointLocal")
@@ -152,6 +161,9 @@ def entities_to_solver_design(discovered: dict) -> dict:
             "source_path": emitter["path"],
             "position_m": [float(value) for value in emitter["position_m"]],
             "direction": [float(value) for value in emitter["direction"]],
+            "orientation_matrix": [
+                [float(value) for value in row] for row in emitter["orientation_matrix"]
+            ],
             "radiant_power_w": power,
             "beam_exponent": exponent,
         })
