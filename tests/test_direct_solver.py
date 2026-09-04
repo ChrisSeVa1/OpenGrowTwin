@@ -1,7 +1,14 @@
 import numpy as np
 import pytest
 
-from opengrow.physics.direct_solver import point_source_irradiance, sensor_grid, simulate_design
+from opengrow.physics.direct_solver import (
+    manufacturer_ies_irradiance,
+    point_source_irradiance,
+    sensor_grid,
+    simulate_design,
+)
+from opengrow.physics.photometry import AngularDistribution
+from opengrow.physics.spectrum import parse_spectrum_text
 
 
 def test_inverse_square_on_axis():
@@ -48,3 +55,78 @@ def test_occluder_creates_partial_shadow_and_diagnostics():
     assert result["blocked_ray_count"] == 1
     assert result["total_ray_count"] == 3
     assert result["occlusion_diagnostics"][0]["source_path"] == "/Red"
+
+
+def _uniform_sphere_distribution():
+    return AngularDistribution(
+        vertical_angles_deg=np.array([0.0, 90.0, 180.0]),
+        horizontal_angles_deg=np.array([0.0, 180.0, 360.0]),
+        intensity=np.ones((3, 3), dtype=float),
+    )
+
+
+def test_manufacturer_ies_uses_full_orientation_and_inverse_square():
+    profile = _uniform_sphere_distribution()
+    orientation = np.eye(3)
+    near = manufacturer_ies_irradiance(
+        np.array([[[0.0, 0.0, 0.0]]]), [0.0, 0.0, 1.0], 2.0, profile, orientation
+    )
+    far = manufacturer_ies_irradiance(
+        np.array([[[0.0, 0.0, 0.0]]]), [0.0, 0.0, 2.0], 2.0, profile, orientation
+    )
+    assert near.item() > 0.0
+    assert (near / far).item() == pytest.approx(4.0)
+
+
+def test_manufacturer_ies_rejects_non_orthonormal_orientation():
+    profile = _uniform_sphere_distribution()
+    grid = np.array([[[0.0, 0.0, 0.0]]])
+    with pytest.raises(ValueError, match="orthonormal"):
+        manufacturer_ies_irradiance(
+            grid, [0.0, 0.0, 1.0], 1.0, profile,
+            [[1, 0, 0], [0, 2, 0], [0, 0, 1]],
+        )
+
+
+def test_tabulated_spd_drives_par_and_far_red_metrics():
+    spectrum = parse_spectrum_text("680 1\n700 1\n720 1\n740 1\n760 1\n")
+    design = {
+        "grid": {"width_m": 0.1, "depth_m": 0.1, "nx": 1, "ny": 1},
+        "channels": [{
+            "id": "red",
+            "wavelength_nm": 700,
+            "spectrum": spectrum,
+            "emitters": [{
+                "position_m": [0, 0, 1],
+                "direction": [0, 0, -1],
+                "radiant_power_w": 1.0,
+                "beam_exponent": 1.0,
+            }],
+        }],
+        "occluders": [],
+    }
+    result = simulate_design(design)
+    assert result["ppfd"].item() > 0.0
+    assert result["far_red"].item() > 0.0
+    assert result["far_red_band_nm"] == [700.0, 750.0]
+
+
+def test_manufacturer_ies_path_works_inside_simulate_design():
+    profile = _uniform_sphere_distribution()
+    design = {
+        "grid": {"width_m": 0.1, "depth_m": 0.1, "nx": 1, "ny": 1},
+        "channels": [{
+            "id": "blue",
+            "wavelength_nm": 450,
+            "emitters": [{
+                "position_m": [0, 0, 1],
+                "radiant_power_w": 1.0,
+                "angular_model": "manufacturer_ies",
+                "angular_distribution": profile,
+                "orientation_matrix": [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+            }],
+        }],
+        "occluders": [],
+    }
+    result = simulate_design(design)
+    assert result["ppfd"].item() > 0.0
