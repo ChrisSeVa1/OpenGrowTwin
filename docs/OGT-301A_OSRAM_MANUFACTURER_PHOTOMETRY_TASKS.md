@@ -1,6 +1,6 @@
 # OGT-301A — OSRAM Manufacturer Photometry Integration
 
-Status: **Steps 1–3 complete; Step 4 implemented on validation branch**
+Status: **Steps 1–4 complete; Step 5 next**
 
 This task extends the existing OpenGrowTwin LED/scientific-source work with manufacturer-backed optical data. It does **not** reopen or redefine the acceptance criteria of the already-completed OGT-301 milestone.
 
@@ -52,7 +52,7 @@ Detailed numerical validation is recorded in `docs/OGT-301A_OSRAM_PHOTOMETRY_VAL
   - Manufacturer documentation states that bundled CAD is mechanical and is not valid as optical ray-tracing geometry.
   - See `docs/OGT-301A_OSRAM_PHOTOMETRY_VALIDATION.md` for validation tables and equations.
 
-- [ ] **4. Implement a generic IES parser** — **implementation present on `ogt-301a-manufacturer-photometry`; acceptance pending full regression run**
+- [x] **4. Implement a generic IES parser and tabulated-SPD ingestion**
   - Added `src/opengrow/physics/photometry.py`.
   - Parses LM-63 `TILT=NONE` Type-C metadata, vertical angles, horizontal angles, multiplier, and intensity field.
   - Preserves raw angular semantics without assuming candela or W/sr.
@@ -61,7 +61,15 @@ Detailed numerical validation is recorded in `docs/OGT-301A_OSRAM_PHOTOMETRY_VAL
   - Rejects malformed, tilted, and unsupported non-Type-C profiles.
   - Added synthetic/open regression fixtures in `tests/test_photometry.py`.
   - Added `tools/validate_manufacturer_optics.py` for provenance-safe validation against user-supplied manufacturer files.
-  - Added `src/opengrow/physics/spectrum.py` and `tests/test_spectrum.py` to ingest/normalize the manufacturer tabulated relative spectra without bundling third-party rayfiles.
+  - Added `src/opengrow/physics/spectrum.py` and `tests/test_spectrum.py` to ingest/normalize manufacturer tabulated relative spectra without bundling third-party rayfiles.
+  - Band integration interpolates arbitrary wavelength boundaries before trapezoidal quadrature.
+  - OGT reporting bands are explicit in the validator: PAR 400–700 nm and far-red 700–750 nm.
+  - Validation on the GCP L4 development VM: **105 tests passed in 2.65 s**.
+  - Manufacturer-asset validation results:
+    - Blue: IES integral 1.447328410 W vs 1.448 W authoritative flux; peak 446 nm; PAR photon flux 5.378530073 µmol/s.
+    - Hyper-red: IES integral 1.049828031 W vs 1.050 W authoritative flux; peak 680 nm; PAR 5.801436375 µmol/s; far-red 700–750 nm 0.099459200 µmol/s.
+    - Far-red: IES integral 0.868967978 W vs 0.869 W authoritative flux; peak 742 nm; PAR 0.232539530 µmol/s; far-red 700–750 nm 4.169875674 µmol/s.
+  - `sources/osram/` is gitignored so manufacturer assets remain local and are not redistributed in the public repository.
 
 - [ ] **5. Add `manufacturer_ies` angular model to the deterministic solver**
   - Use interpolated `p(theta, phi)` instead of the current generalized Lambertian model when a validated manufacturer IES profile is available.
