@@ -157,16 +157,20 @@ def entities_to_solver_design(discovered: dict) -> dict:
         })
         if channel["wavelength_nm"] != wavelength:
             raise ValueError(f"channel {channel_id!r} contains inconsistent wavelengths")
-        channel["emitters"].append({
+
+        solver_emitter = {
             "source_path": emitter["path"],
             "position_m": [float(value) for value in emitter["position_m"]],
             "direction": [float(value) for value in emitter["direction"]],
-            "orientation_matrix": [
-                [float(value) for value in row] for row in emitter["orientation_matrix"]
-            ],
             "radiant_power_w": power,
             "beam_exponent": exponent,
-        })
+        }
+        orientation = emitter.get("orientation_matrix")
+        if orientation is not None:
+            solver_emitter["orientation_matrix"] = [
+                [float(value) for value in row] for row in orientation
+            ]
+        channel["emitters"].append(solver_emitter)
     if not channels:
         raise ValueError("stage has no enabled emitters")
     occluders = []
