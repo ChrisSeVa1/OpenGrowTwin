@@ -54,11 +54,11 @@ def main():
             "photon_flux_at_authoritative_flux_umol_s": (
                 spectrum.photon_flux_per_watt_umol_s() * args.radiant_flux_w
             ),
-            "par_photon_flux_at_authoritative_flux_umol_s": (
+            "par_400_700_photon_flux_at_authoritative_flux_umol_s": (
                 spectrum.photon_flux_per_watt_umol_s(400.0, 700.0) * args.radiant_flux_w
             ),
-            "far_red_photon_flux_at_authoritative_flux_umol_s": (
-                spectrum.photon_flux_per_watt_umol_s(700.0, 800.0) * args.radiant_flux_w
+            "far_red_700_750_photon_flux_at_authoritative_flux_umol_s": (
+                spectrum.photon_flux_per_watt_umol_s(700.0, 750.0) * args.radiant_flux_w
             ),
         }
 
