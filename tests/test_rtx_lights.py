@@ -1,6 +1,6 @@
 import pytest
 
-from opengrow.usd.rtx_lights import visual_intensity, wavelength_to_visual_rgb
+from opengrow.usd.rtx_lights import _normalized_ies_mapping, visual_intensity, wavelength_to_visual_rgb
 
 
 def test_visual_color_distinguishes_channels():
@@ -23,3 +23,22 @@ def test_visual_mapping_rejects_invalid_scientific_values():
         wavelength_to_visual_rgb(float("nan"))
     with pytest.raises(ValueError):
         visual_intensity(-1)
+
+
+def test_ies_mapping_is_optional_and_preserves_asset_paths():
+    assert _normalized_ies_mapping(None) == {}
+    mapping = _normalized_ies_mapping({
+        "blue": "sources/osram/extracted/GD_PUBRA1_15_20250529.ies",
+        "red": "/tmp/GH_PUBRA1_25_20250526.ies",
+    })
+    assert mapping["blue"].endswith("GD_PUBRA1_15_20250529.ies")
+    assert mapping["red"] == "/tmp/GH_PUBRA1_25_20250526.ies"
+
+
+def test_ies_mapping_rejects_empty_identifiers_and_paths():
+    with pytest.raises(TypeError):
+        _normalized_ies_mapping(["blue.ies"])
+    with pytest.raises(ValueError):
+        _normalized_ies_mapping({"": "blue.ies"})
+    with pytest.raises(ValueError):
+        _normalized_ies_mapping({"blue": ""})
