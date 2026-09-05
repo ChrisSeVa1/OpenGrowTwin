@@ -45,13 +45,19 @@ def _metrics(field: np.ndarray) -> dict:
 
 
 def _quarter_turn_error(reference: np.ndarray, rotated: np.ndarray, k: int) -> dict:
+    # sensor_grid stores +Y at increasing row indices, whereas np.rot90(k=+1)
+    # is counter-clockwise in image/array coordinates where row indices increase
+    # downward. Therefore a positive physical +Z rotation maps to k=-1 per +90°.
     expected = np.rot90(reference, k=k)
     delta = np.asarray(rotated) - expected
     scale = float(np.max(np.abs(expected)))
+    max_abs = float(np.max(np.abs(delta)))
+    fraction = float(max_abs / scale) if scale > 0 else None
     return {
-        "max_abs": float(np.max(np.abs(delta))),
+        "max_abs": max_abs,
         "rms": float(np.sqrt(np.mean(delta * delta))),
-        "max_abs_fraction_of_peak": float(np.max(np.abs(delta)) / scale) if scale > 0 else None,
+        "max_abs_fraction_of_peak": fraction,
+        "passes_1e-10_fraction_of_peak": bool(fraction is not None and fraction <= 1e-10),
     }
 
 
@@ -86,6 +92,12 @@ def main():
         fields[angle] = field
         metrics[str(angle)] = _metrics(field)
 
+    checks = {
+        "90_vs_physical_rot90_0": _quarter_turn_error(fields[0], fields[90], -1),
+        "180_vs_physical_rot180_0": _quarter_turn_error(fields[0], fields[180], -2),
+        "270_vs_physical_rot270_0": _quarter_turn_error(fields[0], fields[270], -3),
+    }
+
     report = {
         "part_number": part_number,
         "ies": str(ies_path),
@@ -93,16 +105,16 @@ def main():
             "optical_axis": "local -Z",
             "type_c_c0_reference": "local +X",
             "positive_rotation": "right-handed about world +Z / optical-axis line",
+            "array_rotation_note": "positive physical +Z quarter-turn maps to np.rot90(..., k=-1) because sensor-grid +Y increases with row index",
         },
         "solid_angle_integral_raw": profile.solid_angle_integral(),
         "solid_angle_integral_normalized": normalized.solid_angle_integral(),
         "grid": {"width_m": 1.0, "depth_m": 1.0, "nx": 41, "ny": 41, "source_height_m": 0.6},
         "rotations_deg": metrics,
-        "quarter_turn_consistency": {
-            "90_vs_rot90_0": _quarter_turn_error(fields[0], fields[90], 1),
-            "180_vs_rot180_0": _quarter_turn_error(fields[0], fields[180], 2),
-            "270_vs_rot270_0": _quarter_turn_error(fields[0], fields[270], 3),
-        },
+        "quarter_turn_consistency": checks,
+        "all_quarter_turn_checks_pass": all(
+            item["passes_1e-10_fraction_of_peak"] for item in checks.values()
+        ),
     }
 
     text = json.dumps(report, indent=2, sort_keys=True)
