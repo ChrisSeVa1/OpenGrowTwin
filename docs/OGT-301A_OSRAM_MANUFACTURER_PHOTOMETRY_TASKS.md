@@ -1,6 +1,6 @@
 # OGT-301A — OSRAM Manufacturer Photometry Integration
 
-Status: **Steps 1–4 complete; Step 5 next**
+Status: **Steps 1–5 complete; Step 6 next**
 
 This task extends the existing OpenGrowTwin LED/scientific-source work with manufacturer-backed optical data. It does **not** reopen or redefine the acceptance criteria of the already-completed OGT-301 milestone.
 
@@ -24,7 +24,7 @@ The earlier OSLON™ Square candidates remain valid reference/fallback devices. 
 
 The nominal horticultural channel labels are retained for UI/preset compatibility, but the scientific model should use the full manufacturer-provided tabulated spectrum rather than assume a monochromatic wavelength.
 
-Detailed numerical validation is recorded in `docs/OGT-301A_OSRAM_PHOTOMETRY_VALIDATION.md`.
+Detailed numerical validation is recorded in `docs/OGT-301A_OSRAM_PHOTOMETRY_VALIDATION.md` and `docs/OGT-301A_MANUFACTURER_IES_SOLVER_VALIDATION.md`.
 
 ## Task sequence
 
@@ -71,12 +71,18 @@ Detailed numerical validation is recorded in `docs/OGT-301A_OSRAM_PHOTOMETRY_VAL
     - Far-red: IES integral 0.868967978 W vs 0.869 W authoritative flux; peak 742 nm; PAR 0.232539530 µmol/s; far-red 700–750 nm 4.169875674 µmol/s.
   - `sources/osram/` is gitignored so manufacturer assets remain local and are not redistributed in the public repository.
 
-- [ ] **5. Add `manufacturer_ies` angular model to the deterministic solver**
-  - Use interpolated `p(theta, phi)` instead of the current generalized Lambertian model when a validated manufacturer IES profile is available.
-  - Keep `generalized_lambertian` as a documented fallback.
-  - Normalize angular shape independently and apply authoritative `radiant_flux_w` from LED metadata.
-  - Use normalized manufacturer spectral distribution `s(lambda)` for wavelength-resolved photon conversion.
-  - Maintain inverse-square attenuation, receiver incidence angle, and OpenUSD geometry visibility.
+- [x] **5. Add `manufacturer_ies` angular model to the deterministic solver**
+  - Added normalized manufacturer Type-C `p(theta, phi)` transport while retaining `generalized_lambertian` as a documented fallback.
+  - Manufacturer angular shape is normalized independently from authoritative radiant power.
+  - Manufacturer tabulated SPD drives wavelength-resolved PAR and far-red photon conversion when available.
+  - Inverse-square attenuation, receiver incidence, and geometry-aware visibility remain in the deterministic transport path.
+  - Full emitter orientation is preserved from OpenUSD; OpenGrowTwin maps local `-Z` to the optical axis and local `+X` to the Type-C C=0 reference.
+  - Public asymmetric-profile regression verifies azimuthal orientation behavior.
+  - Real OSRAM blue/red/far-red 0°/90°/180°/270° sanity checks all return `all_quarter_turn_checks_pass: true`.
+  - Controlled Lambertian-vs-manufacturer A/B validation holds geometry, radiant power, manufacturer SPD, receiver geometry, and visibility constant while changing only the angular model.
+  - In the reference canopy case, manufacturer IES changes mean PPFD from 76.5617 to 55.8179 µmol/m²/s (about -27.1%) while min/mean uniformity increases from 0.5875 to 0.7156.
+  - Full Python regression suite: **110 tests passed in 3.24 s**.
+  - See `docs/OGT-301A_MANUFACTURER_IES_SOLVER_VALIDATION.md` for reproducible evidence and limitations.
 
 - [ ] **6. Attach the same manufacturer IES profile to the RTX/USD light**
   - Bind the official IES asset through the USD light shaping API.
@@ -84,6 +90,7 @@ Detailed numerical validation is recorded in `docs/OGT-301A_OSRAM_PHOTOMETRY_VAL
   - Preserve the existing distinction: RTX is visualization; deterministic OpenGrowTwin results remain the scientific truth.
 
 - [ ] **7. Validate A/B behavior: Lambertian vs manufacturer IES**
+  - Core deterministic A/B behavior has already been prevalidated during Step 5; retain this step as the final end-to-end comparison gate after RTX/USD synchronization.
   - Run the same fixture geometry and power through both angular models.
   - Compare PPFD heatmaps, mean/min/max PPFD, CV, min/mean uniformity, DLI, and footprint shape.
   - For batwing devices, explicitly verify that the manufacturer profile produces the expected off-axis redistribution.
