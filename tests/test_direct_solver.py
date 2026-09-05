@@ -65,6 +65,16 @@ def _uniform_sphere_distribution():
     )
 
 
+def _asymmetric_type_c_distribution():
+    """Synthetic full-azimuth Type-C profile with a strong C=0 (+X) lobe."""
+    vertical = np.array([0.0, 45.0, 90.0, 135.0, 180.0])
+    horizontal = np.array([0.0, 90.0, 180.0, 270.0, 360.0])
+    theta_shape = np.array([1.0, 1.0, 0.8, 0.2, 0.05])
+    azimuth_scale = np.array([4.0, 1.0, 0.5, 1.0, 4.0])
+    intensity = azimuth_scale[:, None] * theta_shape[None, :]
+    return AngularDistribution(vertical, horizontal, intensity)
+
+
 def test_manufacturer_ies_uses_full_orientation_and_inverse_square():
     profile = _uniform_sphere_distribution()
     orientation = np.eye(3)
@@ -76,6 +86,32 @@ def test_manufacturer_ies_uses_full_orientation_and_inverse_square():
     )
     assert near.item() > 0.0
     assert (near / far).item() == pytest.approx(4.0)
+
+
+def test_manufacturer_ies_azimuth_follows_emitter_orientation():
+    """A +90 degree local-Z rotation must rotate the Type-C C=0 lobe +X -> +Y."""
+    profile = _asymmetric_type_c_distribution()
+    emitter = [0.0, 0.0, 1.0]
+    points = np.array([[[0.5, 0.0, 0.0], [0.0, 0.5, 0.0]]])
+
+    identity = np.eye(3)
+    rotate_z_90 = np.array([
+        [0.0, -1.0, 0.0],
+        [1.0, 0.0, 0.0],
+        [0.0, 0.0, 1.0],
+    ])
+
+    field_0 = manufacturer_ies_irradiance(points, emitter, 1.0, profile, identity)
+    field_90 = manufacturer_ies_irradiance(points, emitter, 1.0, profile, rotate_z_90)
+
+    # Identity: C=0 is local +X, so the +X sample sees the strong lobe.
+    assert field_0[0, 0] > field_0[0, 1]
+    # After +90 degrees about local/world Z, local +X maps to world +Y.
+    assert field_90[0, 1] > field_90[0, 0]
+    # Equal-radius samples verify that the angular field itself rotated, rather than
+    # a distance/incidence change creating the result.
+    assert field_90[0, 1] == pytest.approx(field_0[0, 0], rel=1e-12, abs=1e-12)
+    assert field_90[0, 0] == pytest.approx(field_0[0, 1], rel=1e-12, abs=1e-12)
 
 
 def test_manufacturer_ies_rejects_non_orthonormal_orientation():
