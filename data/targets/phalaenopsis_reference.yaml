@@ -1,0 +1,14 @@
+id: phalaenopsis_ouzounis_2015_reference
+species: Phalaenopsis
+context: vegetative_greenhouse_reference
+target:
+  mean_ppfd_umol_m2_s: 200
+  photoperiod_h: 14
+photon_fraction:
+  blue_400_500: 0.40
+  red_600_700: 0.60
+interpretation:
+  type: published_reference_treatment
+  optimization_claim: false
+notes:
+  - Cultivar- and response-dependent; not a universal optimum.

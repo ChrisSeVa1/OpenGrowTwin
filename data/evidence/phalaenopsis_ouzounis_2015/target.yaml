@@ -1,0 +1,64 @@
+schema_version: "1.0"
+target_id: phalaenopsis_ouzounis_2015_reference
+display_name: "Phalaenopsis 2015 B40/R60 reference"
+approval_status: approved
+source_id: ouzounis_2015_ppl_12300
+
+scope:
+  species: Phalaenopsis
+  cultivars: [Vivien, Purple Star]
+  developmental_context: pre_flowering
+  reproduction_type: reference_lighting_environment
+
+target:
+  mean_ppfd_umol_m2_s:
+    value: 200
+    qualifier: approximate
+    source_field: experiment.lighting.approximate_mean_ppfd_umol_m2_s
+  photoperiod_h:
+    value: 14
+    source_field: experiment.lighting.photoperiod_h
+  derived_dli_mol_m2_d:
+    value: 10.08
+    derivation: "mean_ppfd_umol_m2_s * photoperiod_h * 0.0036"
+    authority: deterministic_calculation
+
+photon_fraction:
+  denominator: blue_plus_red_photons
+  blue_400_500:
+    value: 0.40
+    source_field: experiment.lighting.treatments.blue40_red60.blue_fraction
+  red_600_700:
+    value: 0.60
+    source_field: experiment.lighting.treatments.blue40_red60.red_fraction
+  far_red:
+    status: not_specified_as_target
+    optimizer_weight: 0.0
+
+digital_twin_mapping:
+  blue_400_500:
+    channel_nm: 450
+    representation: narrowband_approximation
+  red_600_700:
+    channel_nm: 660
+    representation: narrowband_approximation
+  far_red:
+    channel_nm: 730
+    reference_target_use: excluded
+  matching_basis: photon_flux_fraction
+  reproduced:
+    - approximate_mean_ppfd_at_canopy
+    - photoperiod
+    - blue_red_photon_fraction
+  not_reproduced:
+    - exact_led_spectral_power_distribution
+    - background_daylight_spectrum
+    - greenhouse_reflections
+    - temperature_response
+    - cultivar_growth_response
+
+claim_boundary:
+  classification: published_reference_treatment
+  optimization_claim: false
+  biological_prediction: false
+  universal_recommendation: false

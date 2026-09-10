@@ -1,0 +1,26 @@
+schema_version: "1.0"
+source_id: ouzounis_2015_ppl_12300
+target_id: phalaenopsis_ouzounis_2015_reference
+
+approved_claims:
+  - claim_id: reference_conditions
+    statement: "This configuration reproduces selected lighting conditions from a published Phalaenopsis experiment."
+    evidence_fields:
+      - experiment.lighting.approximate_mean_ppfd_umol_m2_s
+      - experiment.lighting.photoperiod_h
+      - experiment.lighting.treatments.blue40_red60
+  - claim_id: treatment_identity
+    statement: "The experiment included a treatment with approximately 40 percent blue and 60 percent red light."
+    evidence_fields:
+      - experiment.lighting.treatments.blue40_red60
+  - claim_id: response_boundary
+    statement: "The study did not establish one universal spectral optimum across cultivars and measured responses."
+    evidence_fields:
+      - source_limitations
+
+prohibited_claims:
+  - "The 40 percent blue and 60 percent red treatment is optimal for all Phalaenopsis."
+  - "This configuration maximizes orchid growth."
+  - "OpenGrowTwin predicts flowering, yield, pigmentation, or plant growth."
+  - "The simulated narrowband channels reproduce the original LED spectrum exactly."
+  - "The study proves that far-red should be zero."
